@@ -1,0 +1,26 @@
+{
+  "acknowledged": true,
+  "insertedCount": 2,
+  "insertedIds": {
+    "0": "633ed3691e9df7a289ab7723",
+    "1": "633ed3691e9df7a289ab7724"
+  }
+}
+
+// put
+[
+  {
+    "acknowledged": true,
+    "modifiedCount": 1,
+    "upsertedId": null,
+    "upsertedCount": 0,
+    "matchedCount": 1
+  }
+]
+
+[
+  {
+    "acknowledged": true,
+    "deletedCount": 1
+  }
+]

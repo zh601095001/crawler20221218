@@ -1,0 +1,289 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Database",
+    "contact": {
+      "name": "Zhao Hao",
+      "email": "601095001@qq.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/db": {
+      "put": {
+        "tags": [
+          "db"
+        ],
+        "parameters": [
+          {
+            "name": "db",
+            "in": "query",
+            "schema": {
+              "title": "Database",
+              "type": "string",
+              "default": "defaultDb"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "title": "Collection",
+              "type": "string",
+              "default": "defaultCollection"
+            }
+          }
+        ],
+        "summary": "modify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Items"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "db"
+        ],
+        "parameters": [
+          {
+            "name": "db",
+            "in": "query",
+            "schema": {
+              "title": "Database",
+              "type": "string",
+              "default": "defaultDb"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "title": "Collection",
+              "type": "string",
+              "default": "defaultCollection"
+            }
+          }
+        ],
+        "summary": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Items"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "db"
+        ],
+        "summary": "get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Skip",
+              "type": "integer",
+              "default": 0
+            },
+            "name": "skip",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Limit",
+              "type": "integer",
+              "default": 100
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "name": "db",
+            "in": "query",
+            "schema": {
+              "title": "Database",
+              "type": "string",
+              "default": "defaultDb"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "title": "Collection",
+              "type": "string",
+              "default": "defaultCollection"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "db"
+        ],
+        "parameters": [
+          {
+            "name": "db",
+            "in": "query",
+            "schema": {
+              "title": "Database",
+              "type": "string",
+              "default": "defaultDb"
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "schema": {
+              "title": "Collection",
+              "type": "string",
+              "default": "defaultCollection"
+            }
+          }
+        ],
+        "summary": "delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Items"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Item"
+        }
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "PostResponse": {
+        "type": "object",
+        "properties": {
+          "acknowledged": {
+            "type": "boolean"
+          },
+          "insertedCount": {
+            "type": "number"
+          },
+          "insertedIds": {
+            "type": "object"
+          }
+        }
+      },
+      "PutResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "acknowledged": {
+              "type": "boolean"
+            },
+            "modifiedCount": {
+              "type": "number"
+            },
+            "upsertedId": {
+              "type": "string"
+            },
+            "upsertedCount": {
+              "type": "number"
+            },
+            "matchedCount": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "DeleteResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "acknowledged": {
+              "type": "boolean"
+            },
+            "deletedCount": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}
