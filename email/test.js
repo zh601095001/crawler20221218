@@ -1,3 +1,3 @@
 const dayjs = require("dayjs")
 
-console.log(dayjs().unix())
+console.log(typeof dayjs().$d);

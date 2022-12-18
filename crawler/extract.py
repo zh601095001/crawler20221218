@@ -3,6 +3,7 @@ from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+from pprint import pprint
 
 
 class Extarct:
@@ -10,11 +11,11 @@ class Extarct:
         # 定义配置对象
         options = webdriver.ChromeOptions()
         # 无头模式
-        options.add_argument('--headless')
+        # options.add_argument('--headless')
         options.add_argument('--disable-gpu')
+        options.add_argument("--disable-application-cache")
         self.driver = webdriver.Chrome(options=options)
         self.body = ""  # 点击操作后原始待处理html
-
 
     def step01(self):
         self.driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
@@ -86,3 +87,4 @@ class Extarct:
 
 if __name__ == '__main__':
     tables = Extarct().run()
+    pprint(tables)

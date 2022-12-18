@@ -26,31 +26,30 @@ services:
       DATABASE_URI: mongodb://root:example@mongo:27017/
       PORT: 8000
     #  邮件服务
-  email:
-    image: email
-    build: ./email
-    depends_on:
-      - mongo
-    volumes:
-      - ./email:/app
-    command: sh -c "yarn install && yarn run dev"
-    environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017/
-      PORT: 8000
-      # email
-      EMAIL_HOST: 'smtp.qq.com'
-      EMAIL_PORT: 465
-      # 你的QQ账号
-      EMAIL_USER: 759126132@qq.com
-      EMAIL_PASSWORD: evrbcmehxjelbcgd
-      # 延迟监听时间，单位: hour
-      DELAY_TIME_SPAN: 0
-      # 监听实时时间之前多久的数据
-      MONITOR_TIME_SPAN: 1
-      # 让分阈值
-      THRESHOLD: 0.5
-      # 接收邮箱
-      RECEIVE_EMAIL: 601095001@qq.com
+#  email:
+#    image: email
+#    build: ./email
+#    depends_on:
+#      - mongo
+#    volumes:
+#      - ./email:/app
+#    command: sh -c "yarn install && yarn run dev"
+#    environment:
+#      DATABASE_URI: mongodb://root:example@mongo:27017/
+#      # email
+#      EMAIL_HOST: 'smtp.qq.com'
+#      EMAIL_PORT: 465
+#      # 你的QQ账号
+#      EMAIL_USER: 759126132@qq.com
+#      EMAIL_PASSWORD: evrbcmehxjelbcgd
+#      # 延迟监听时间，单位: hour
+#      DELAY_TIME_SPAN: 0
+#      # 监听实时时间之前多久的数据
+#      MONITOR_TIME_SPAN: 1
+#      # 让分阈值
+#      THRESHOLD: 0.5
+#      # 接收邮箱
+#      RECEIVE_EMAIL: 759126132@qq.com
   # mongodb
   mongo:
     image: mongo
@@ -75,3 +74,7 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+networks:
+  frontend:
+    # Use a custom driver
+    driver: custom-driver-1

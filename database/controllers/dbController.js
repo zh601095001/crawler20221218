@@ -3,7 +3,7 @@ const {flatten} = require('mongo-dot-notation')
 const getItems = async (req, res) => {
     try {
         let {limit, skip, ...extraQuery} = req.query
-        limit = limit ? Number(limit) : 10
+        limit = limit ? Number(limit) : 1000
         skip = skip ? Number(skip) : 0
         const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
         const data = await cur.toArray()
@@ -19,7 +19,7 @@ const searchItem = async (req, res) => {
     console.log( req.body)
     try {
         let {limit, skip, ...extraQuery} = req.body
-        limit = limit ? Number(limit) : 10
+        limit = limit ? Number(limit) : 1000
         skip = skip ? Number(skip) : 0
         const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
         const data = await cur.toArray()
