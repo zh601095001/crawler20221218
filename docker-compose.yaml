@@ -1,16 +1,19 @@
 version: "3.7"
 services:
-#  #  爬虫服务
-#  crawler:
-#    image: crawler
-#    build: ./crawler
-#    depends_on:
-#      - database
-#    volumes:
-#      - ./crawler:/app
-#    command: sh -c "yarn dev"
-#    ports:
-#      - "3000:3000"
+  #  爬虫服务
+  crawler:
+    image: crawler
+    build: ./crawler
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./crawler:/app
+    command: sh -c "python main.py"
+    environment:
+      BASE_URL: http://database:8000
+      SELENIUM: http://seleniumGrid:4444
+
   #  数据库服务
   database:
     image: database
@@ -23,33 +26,43 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017/
+      DATABASE_URI: mongodb://root:example@mongo:27017
       PORT: 8000
     #  邮件服务
-#  email:
-#    image: email
-#    build: ./email
-#    depends_on:
-#      - mongo
-#    volumes:
-#      - ./email:/app
-#    command: sh -c "yarn install && yarn run dev"
-#    environment:
-#      DATABASE_URI: mongodb://root:example@mongo:27017/
-#      # email
-#      EMAIL_HOST: 'smtp.qq.com'
-#      EMAIL_PORT: 465
-#      # 你的QQ账号
-#      EMAIL_USER: 759126132@qq.com
-#      EMAIL_PASSWORD: evrbcmehxjelbcgd
-#      # 延迟监听时间，单位: hour
-#      DELAY_TIME_SPAN: 0
-#      # 监听实时时间之前多久的数据
-#      MONITOR_TIME_SPAN: 1
-#      # 让分阈值
-#      THRESHOLD: 0.5
-#      # 接收邮箱
-#      RECEIVE_EMAIL: 759126132@qq.com
+  email:
+    image: email
+    build: ./email
+    depends_on:
+      - mongo
+      - database
+      - crawler
+    volumes:
+      - ./email:/app
+    command: sh -c "yarn install && yarn run dev"
+    environment:
+      BASE_URL: http://database:8000
+      # email
+      EMAIL_HOST: 'smtp.qq.com'
+      EMAIL_PORT: 465
+      # 你的QQ账号
+      EMAIL_USER: 601095001@qq.com
+      EMAIL_PASSWORD: uipvofeohmtxbbbj
+      # 延迟监听时间，单位: hour
+      DELAY_TIME_SPAN: 0
+      # 监听实时时间之前多久的数据
+      MONITOR_TIME_SPAN: 1
+      # 让分阈值
+      THRESHOLD: 10
+      # 接收邮箱
+      RECEIVE_EMAIL: 759126132@qq.com
+  seleniumGrid:
+    image: selenium/standalone-chrome
+    shm_size: 2gb
+    environment:
+      - SE_NODE_SESSION_TIMEOUT = 10
+    ports:
+      - "4444:4444"
+      - "7900:7900"
   # mongodb
   mongo:
     image: mongo
@@ -73,8 +86,4 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
-networks:
-  frontend:
-    # Use a custom driver
-    driver: custom-driver-1
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017

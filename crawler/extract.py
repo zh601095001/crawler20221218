@@ -3,35 +3,33 @@ from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from pprint import pprint
+from os import getenv
+
+SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
 
 
-class Extarct:
-    def __init__(self):
-        # 定义配置对象
-        options = webdriver.ChromeOptions()
-        # 无头模式
-        # options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument("--disable-application-cache")
-        self.driver = webdriver.Chrome(options=options)
-        self.body = ""  # 点击操作后原始待处理html
-
-    def step01(self):
-        self.driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
+def extract():
+    # 定义配置对象
+    options = webdriver.ChromeOptions()
+    # 无头模式
+    # options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    options.add_argument("--disable-application-cache")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+    driver = webdriver.Remote(options=options, command_executor=SELENIUM)
+    try:
+        driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
         # 点击操作
-        elem = self.driver.find_element(By.XPATH, '//*[@id="main"]/div[1]/div[2]/ul[1]/li[1]/a')
+        elem = driver.find_element(By.XPATH, '//*[@id="main"]/div[1]/div[2]/ul[1]/li[1]/a')
         elem.click()
-        elem2 = self.driver.find_element(By.XPATH, '//*[@id="rb1"]')
+        elem2 = driver.find_element(By.XPATH, '//*[@id="rb1"]')
         elem2.click()
-        elem3 = self.driver.find_element(By.XPATH, '//*[@id="DivLeague"]/div[1]/span/a')
+        elem3 = driver.find_element(By.XPATH, '//*[@id="DivLeague"]/div[1]/span/a')
         elem3.click()
         # 文本解析
-        body = self.driver.find_element(By.XPATH, "/html").get_attribute("innerHTML")
-        self.body = f"<html>\n{body}\n</html>"
+        body = driver.find_element(By.XPATH, "/html").get_attribute("outerHTML")
 
-    def step02(self):
-        soup = BeautifulSoup(self.body, features="html.parser")
+        soup = BeautifulSoup(body, features="html.parser")
         data = soup.select("#live")
         # write(data[0].prettify(encoding="gbk"))
         tables = data[0].select("table", limit=10000)
@@ -77,14 +75,11 @@ class Extarct:
                     titles, line1, line2
                 ])
             return li
+    finally:
+        driver.quit()
 
-        return getTable(targetTables)
-
-    def run(self):
-        self.step01()
-        return self.step02()
+    return getTable(targetTables)
 
 
 if __name__ == '__main__':
-    tables = Extarct().run()
-    pprint(tables)
+    extract()

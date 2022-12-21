@@ -1,12 +1,12 @@
-require('dotenv').config({path: '.env'})
-const axios = require("axios")
+require('dotenv').config({path: '.env.bk'})
+const {axios} = require("./axios")
 const dayjs = require("dayjs")
 
 ;const {sendEmail} = require("./utils");
 
 setInterval(async () => {
     try {
-        const responseTime = await axios.get("http://localhost:8000/db", {
+        const responseTime = await axios.get("/db", {
             params: {
                 collection: "time",
                 _id: "lastRunTime"
@@ -18,7 +18,7 @@ setInterval(async () => {
         if (!((dayjs().unix() - createTime) / 60 / 60 >= process.env.DELAY_TIME_SPAN)) {
             return
         }
-        const response = await axios.post("http://localhost:8000/db/s",
+        const response = await axios.post("/db/s",
             {createTime: {$gt: dayjs().unix() - process.env.MONITOR_TIME_SPAN * 60 * 60}},
             {
                 timeout: 1000 * 60 * 5
@@ -75,7 +75,7 @@ setInterval(async () => {
             console.log(finallyResults)
         }
         finallyResults.forEach(result => {
-            axios.put("http://localhost:8000/db", {
+            axios.put("/db", {
                 _id: result._id,
                 isSendEmail: true
             }, {
