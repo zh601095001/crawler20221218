@@ -12,7 +12,7 @@
         current_score = hl[1]
     }
     if (gl) {
-        current_score = gl[1]
+        current_score = - gl[1]
     }
     obj["current_score"] = current_score
 
