@@ -1,4 +1,4 @@
-require('dotenv').config({path: '.env.bk'})
+require('dotenv').config({path: '.env'})
 const {axios} = require("./axios")
 const dayjs = require("dayjs")
 
@@ -27,20 +27,28 @@ setInterval(async () => {
         const {data} = response.data
         const targets = data.map(records => {
             const _id = records._id
-            const {isSendEmail} = records
+            const {isSendEmail, game_time, team_name1, team_name2} = records
             // 取第一个和最后一个
-            const initialScore = records["start"]["score"]
-            const currentScore = records["end"]["score"]
-            const extremum = initialScore - currentScore
+            const initialScore = records["start_score"]
+            const currentScore = records["current_score"]
+            // 计算分差
+            let extremum = null
+            if (initialScore) {
+                extremum = initialScore - currentScore
+            }
             return {
-                _id, initialScore, currentScore, extremum, isSendEmail
+                _id, initialScore, currentScore, extremum, isSendEmail, game_time, team_name1, team_name2
             }
         })
-        // console.log(targets)
+        console.log(targets)
         const finallyResults = targets
             // 阈值大于设定值
             .filter(target => {
-                return Math.abs(target.extremum) >= process.env.THRESHOLD
+                if (target.extremum) {
+                    return Math.abs(target.extremum) >= process.env.THRESHOLD
+                } else {
+                    return false
+                }
             })
             // 过滤初始值为正增加和初始值为负减少
             .filter(target => {
@@ -52,12 +60,13 @@ setInterval(async () => {
                 return !target.isSendEmail
             })
         const displayResult = finallyResults.map(finallyResult => `
-        <h1>${finallyResult._id}</h1>
-        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.initialScore > 0 ? "主队" : "客队"}初始让分值:</div><div>${Math.abs(finallyResult.initialScore)}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.currentScore > 0 ? "主队" : "客队"}当前让分值:</div><div>${Math.abs(finallyResult.currentScore)}</div></div>
+        <h1>${finallyResult.game_time}</h1>
+        <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
+        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.currentScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}当前让分值:</div><div>${Math.abs(finallyResult.currentScore)}</div></div>
+        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}初始让分值:</div><div>${Math.abs(finallyResult.initialScore)}</div></div>
         <div style="display: flex"><div style="font-weight: bold;">让分偏差:</div><div>${finallyResult.extremum}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">触发条件:</div><div>${process.env.THRESHOLD}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format("MMM D, YYYY h:mm A")}</div></div>
+        <div style="display: flex"><div style="font-weight: bold;">监控阈值:</div><div>${process.env.THRESHOLD}</div></div>
+        <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format('YYYY-MM-DD HH:mm:ss')}</div></div>
         <hr/>
     `).join("")
 
