@@ -46,7 +46,7 @@ services:
       EMAIL_PORT: 465
       # 你的QQ账号
       EMAIL_USER: 601095001@qq.com
-      EMAIL_PASSWORD: uipvofeohmtxbbbj
+      EMAIL_PASSWORD: lkdflvvghiiybfdh
       # 延迟监听时间，单位: hour
       DELAY_TIME_SPAN: 0
       # 监听实时时间之前多久的数据
