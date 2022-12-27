@@ -27,7 +27,7 @@ setInterval(async () => {
         const {data} = response.data
         const targets = data.map(records => {
             const _id = records._id
-            const {isSendEmail, game_time, team_name1, team_name2} = records
+            const {isSendEmail, game_time, team_name1, team_name2, game_session} = records
             // 取第一个和最后一个
             const initialScore = records["start_score"]
             const currentScore = records["current_score"]
@@ -37,7 +37,7 @@ setInterval(async () => {
                 extremum = initialScore - currentScore
             }
             return {
-                _id, initialScore, currentScore, extremum, isSendEmail, game_time, team_name1, team_name2
+                _id, initialScore, currentScore, extremum, isSendEmail, game_time, team_name1, team_name2,game_session
             }
         })
         console.log(targets)
@@ -60,7 +60,7 @@ setInterval(async () => {
                 return !target.isSendEmail
             })
         const displayResult = finallyResults.map(finallyResult => `
-        <h1>${finallyResult.game_time}</h1>
+        <h1>${finallyResult.game_time} ${finallyResult.game_session}</h1>
         <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
         <div style="display: flex"><div style="font-weight: bold;">${finallyResult.currentScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}当前让分值:</div><div>${Math.abs(finallyResult.currentScore)}</div></div>
         <div style="display: flex"><div style="font-weight: bold;">${finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}初始让分值:</div><div>${Math.abs(finallyResult.initialScore)}</div></div>
