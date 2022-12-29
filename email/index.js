@@ -92,7 +92,7 @@ setInterval(async () => {
                     <div style="display: flex"><div style="font-weight: bold;">${type}监控阈值:</div><div>${THRESHOLD_WITH_TYPE}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format('YYYY-MM-DD HH:mm:ss')}</div></div>
                     <hr/>
-    `
+            `
         }).join("")
 
         if (finallyResults.length) {
