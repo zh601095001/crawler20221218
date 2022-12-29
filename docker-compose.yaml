@@ -3,7 +3,7 @@ services:
   #  爬虫服务
   crawler:
     image: zhlcy2022/crawler
-#    build: ./crawler
+    #    build: ./crawler
     depends_on:
       - mongo
       - database
@@ -17,7 +17,7 @@ services:
   #  数据库服务
   database:
     image: zhlcy2022/database
-#    build: ./database
+    #    build: ./database
     depends_on:
       - mongo
     volumes:
@@ -31,7 +31,7 @@ services:
     #  邮件服务
   email:
     image: zhlcy2022/email
-#    build: ./email
+    #    build: ./email
     depends_on:
       - mongo
       - database
@@ -52,7 +52,8 @@ services:
       # 监听实时时间之前多久的数据
       MONITOR_TIME_SPAN: 1
       # 让分阈值
-      THRESHOLD: 10
+      INC_THRESHOLD: 10
+      DES_THRESHOLD: 10
       # 接收邮箱
       RECEIVE_EMAIL: 759126132@qq.com
   seleniumGrid:
