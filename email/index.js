@@ -61,17 +61,39 @@ setInterval(async () => {
             .filter(target => {
                 return !target.isSendEmail
             })
-        const displayResult = finallyResults.map(finallyResult => `
-        <h1>${finallyResult.game_time} ${finallyResult.game_session}</h1>
-        <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
-        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.currentScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}当前让分值:</div><div>${Math.abs(finallyResult.currentScore)}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">${finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2}初始让分值:</div><div>${Math.abs(finallyResult.initialScore)}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">让分偏差:</div><div>${finallyResult.extremum}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">增量监控阈值:</div><div>${process.env.INC_THRESHOLD}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">减少监控阈值:</div><div>${process.env.DES_THRESHOLD}</div></div>
-        <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format('YYYY-MM-DD HH:mm:ss')}</div></div>
-        <hr/>
-    `).join("")
+        const displayResult = finallyResults.map(finallyResult => {
+            const type = finallyResult.extremum > 0 ? "增量" : "减量"
+            const THRESHOLD_WITH_TYPE = finallyResult.extremum > 0 ? process.env.INC_THRESHOLD : process.env.DES_THRESHOLD
+            const INIT_SCORE_TEAM_NAME = finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2
+            let SCORE // 正数代表对方让分，负数代表自己让分
+            if (type === "增量") { // 客队
+                if (finallyResult.currentScore < 0) { // 客队 自己让分 需要为-
+                    SCORE = finallyResult.currentScore // -
+                } else {
+                    SCORE = -finallyResult.currentScore // +
+                }
+
+            }
+            if (type === "减量") { // 主队
+                if (finallyResult.currentScore < 0) {  // 主队 被对方让分 需要为+
+                    SCORE = -finallyResult.currentScore // +
+                } else {
+                    SCORE = finallyResult.currentScore // +
+                }
+
+            }
+            return `
+                    <h1>${finallyResult.game_time} ${finallyResult.game_session}</h1>
+                    <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
+                    <h1>${INIT_SCORE_TEAM_NAME}：${SCORE > 0 ? "+" : ""}${SCORE}</h1>
+                    <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}当前让分值:</div><div>${finallyResult.currentScore}</div></div>
+                    <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}初始让分值:</div><div>${finallyResult.initialScore}</div></div>
+                    <div style="display: flex"><div style="font-weight: bold;">${type}让分偏差:</div><div>${finallyResult.extremum}</div></div>
+                    <div style="display: flex"><div style="font-weight: bold;">${type}监控阈值:</div><div>${THRESHOLD_WITH_TYPE}</div></div>
+                    <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format('YYYY-MM-DD HH:mm:ss')}</div></div>
+                    <hr/>
+    `
+        }).join("")
 
         if (finallyResults.length) {
             await sendEmail({
