@@ -27,7 +27,7 @@ setInterval(async () => {
         )
         const {data} = response.data
         const targets = data.map(records => {
-            const {_id, isSendEmail, game_time, team_name1, team_name2, game_session} = records
+            let {_id, isSendEmail, game_time, team_name1, team_name2, game_session, validity, total_score_1, total_score_2} = records
             // 取第一个和最后一个
             const initialScore = records["start_score"]
             const currentScore = records["current_score"]
@@ -36,11 +36,12 @@ setInterval(async () => {
             if (initialScore) {
                 extremum = currentScore - initialScore
             }
+            validity = validity || 0.0
             return {
-                _id, initialScore, currentScore, extremum, isSendEmail, game_time, team_name1, team_name2, game_session
+                _id, initialScore, currentScore, extremum, isSendEmail, game_time, team_name1, team_name2,
+                game_session, validity, total_score_1, total_score_2
             }
         })
-        console.log(targets)
         const finallyResults = targets
             // 阈值大于设定值
             .filter(target => {
@@ -62,33 +63,36 @@ setInterval(async () => {
                 return !target.isSendEmail
             })
         const displayResult = finallyResults.map(finallyResult => {
-            const type = finallyResult.extremum > 0 ? "增量" : "减量"
+            const type = finallyResult.initialScore > 0 ? "减量" : "增量" // 初始让分为正=>减量 负=>增量
             const THRESHOLD_WITH_TYPE = finallyResult.extremum > 0 ? process.env.INC_THRESHOLD : process.env.DES_THRESHOLD
-            const INIT_SCORE_TEAM_NAME = finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2
-            const CURRENT_SCORE_TEAM_NAME = finallyResult.extremum > 0 ? finallyResult.team_name2 : finallyResult.team_name1
+            let initScoreTeamName
+            const current_score_team_name = finallyResult.extremum > 0 ? finallyResult.team_name2 : finallyResult.team_name1
             let SCORE // 正数代表对方让分，负数代表自己让分
-            if (type === "增量") { // 客队
-                if (finallyResult.currentScore < 0) { // 客队 自己让分 需要为-
+            if (type === "减量") {
+                initScoreTeamName = finallyResult.team_name1 // 显示主队
+                if (finallyResult.currentScore > 0) {
+                    SCORE = -finallyResult.currentScore // 当前让分为正：最终显示为 -
+                } else {
+                    SCORE = finallyResult.currentScore // +
+                }
+
+            }
+            if (type === "增量") {
+                initScoreTeamName = finallyResult.team_name2 // 显示客队
+                if (finallyResult.currentScore < 0) { // 当前让分为负，显示-
                     SCORE = finallyResult.currentScore // -
                 } else {
                     SCORE = -finallyResult.currentScore // +
                 }
 
             }
-            if (type === "减量") { // 主队
-                if (finallyResult.currentScore < 0) {  // 主队 被对方让分 需要为+
-                    SCORE = -finallyResult.currentScore // +
-                } else {
-                    SCORE = finallyResult.currentScore // +
-                }
 
-            }
             return `
-                    <h1>${finallyResult.game_time} ${finallyResult.game_session}</h1>
-                    <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
-                    <h1>${CURRENT_SCORE_TEAM_NAME}：${SCORE > 0 ? "+" : ""}${SCORE}</h1>
-                    <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}当前让分值:</div><div>${finallyResult.currentScore}</div></div>
-                    <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}初始让分值:</div><div>${finallyResult.initialScore}</div></div>
+                    <h1>${finallyResult.game_time} ${finallyResult.game_session} (${parseInt(finallyResult.validity) * 100}%)</h1>
+                    <h1>${finallyResult.team_name1} ${finallyResult.total_score_1} | ${finallyResult.team_name2} ${finallyResult.total_score_2}</h1>
+                    <h1>${current_score_team_name}：${SCORE > 0 ? "+" : ""}${SCORE}</h1>
+                    <div style="display: flex"><div style="font-weight: bold;">${initScoreTeamName}当前让分值:</div><div>${finallyResult.currentScore}</div></div>
+                    <div style="display: flex"><div style="font-weight: bold;">${initScoreTeamName}初始让分值:</div><div>${finallyResult.initialScore}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">${type}让分偏差:</div><div>${finallyResult.extremum}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">${type}监控阈值:</div><div>${THRESHOLD_WITH_TYPE}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">触发时间:</div><div>${dayjs().format('YYYY-MM-DD HH:mm:ss')}</div></div>

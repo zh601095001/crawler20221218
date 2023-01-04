@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "python3 ./main.py"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}

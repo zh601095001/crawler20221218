@@ -5,6 +5,8 @@
     obj["team_name"] = document.getElementById(`team_${table_id}`).innerHTML
     obj["team_name2"] = document.getElementById(`team2_${table_id}`).innerHTML
     obj["game_session"] = document.getElementById(`zt_${table_id}`).innerHTML
+    obj["total_score_1"] = document.getElementById(`hzf_${table_id}`).innerHTML
+    obj["total_score_2"] = document.getElementById(`gzf_${table_id}`).innerHTML
     const hl = document.getElementById(`hl_${table_id}`).innerHTML.match(/^<span class="odds2.*?">(.*?)<\/span>.*?$/)
     const gl = document.getElementById(`gl_${table_id}`).innerHTML.match(/^<span class="odds2.*?">(.*?)<\/span>.*?$/)
     let current_score = null
@@ -12,7 +14,7 @@
         current_score = hl[1]
     }
     if (gl) {
-        current_score = - gl[1]
+        current_score = -gl[1]
     }
     obj["current_score"] = current_score
 

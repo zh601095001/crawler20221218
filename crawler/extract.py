@@ -44,12 +44,16 @@ def getCurrent(env="dev"):
                 game_time = js_result["game_time"]
                 team_name = js_result["team_name"]
                 team_name2 = js_result["team_name2"]
+                total_score_1 = int(js_result["total_score_1"]) if js_result["total_score_1"] else None
+                total_score_2 = int(js_result["total_score_2"]) if js_result["total_score_2"] else None
                 game_session = js_result["game_session"]
                 current_score = float(js_result["current_score"]) if js_result["current_score"] else None
                 datas.append({
                     "_id": convertMd5(f'{game_time} {team_name} | {team_name2}'),
                     "current_score": current_score,
-                    "game_session": game_session
+                    "game_session": game_session,
+                    "total_score_1": total_score_1,
+                    "total_score_2": total_score_2
                 })
     finally:
         driver.quit()
@@ -86,6 +90,8 @@ def getInit(env="dev"):
                 game_time = js_result["game_time"]
                 team_name = js_result["team_name"]
                 team_name2 = js_result["team_name2"]
+                total_score_1 = int(js_result["total_score_1"]) if js_result["total_score_1"] else None
+                total_score_2 = int(js_result["total_score_2"]) if js_result["total_score_2"] else None
                 current_score = float(js_result["current_score"]) if js_result["current_score"] else None
                 # 新打开页获取初始让分
                 hl = driver.find_element(value=f'hl_{table_id}')
@@ -105,7 +111,9 @@ def getInit(env="dev"):
                     "team_name2": team_name2,
                     "game_time": game_time,
                     "createTime": int(time.time()),
-                    "current_score": current_score
+                    "current_score": current_score,
+                    "total_score_1": total_score_1,
+                    "total_score_2": total_score_2
                 })
                 driver.close()
                 driver.switch_to.window(main_window_handle)
