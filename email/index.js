@@ -65,6 +65,7 @@ setInterval(async () => {
             const type = finallyResult.extremum > 0 ? "增量" : "减量"
             const THRESHOLD_WITH_TYPE = finallyResult.extremum > 0 ? process.env.INC_THRESHOLD : process.env.DES_THRESHOLD
             const INIT_SCORE_TEAM_NAME = finallyResult.initialScore > 0 ? finallyResult.team_name1 : finallyResult.team_name2
+            const CURRENT_SCORE_TEAM_NAME = finallyResult.extremum > 0 ? finallyResult.team_name2 : finallyResult.team_name1
             let SCORE // 正数代表对方让分，负数代表自己让分
             if (type === "增量") { // 客队
                 if (finallyResult.currentScore < 0) { // 客队 自己让分 需要为-
@@ -85,7 +86,7 @@ setInterval(async () => {
             return `
                     <h1>${finallyResult.game_time} ${finallyResult.game_session}</h1>
                     <h1>${finallyResult.team_name1} | ${finallyResult.team_name2}</h1>
-                    <h1>${INIT_SCORE_TEAM_NAME}：${SCORE > 0 ? "+" : ""}${SCORE}</h1>
+                    <h1>${CURRENT_SCORE_TEAM_NAME}：${SCORE > 0 ? "+" : ""}${SCORE}</h1>
                     <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}当前让分值:</div><div>${finallyResult.currentScore}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">${INIT_SCORE_TEAM_NAME}初始让分值:</div><div>${finallyResult.initialScore}</div></div>
                     <div style="display: flex"><div style="font-weight: bold;">${type}让分偏差:</div><div>${finallyResult.extremum}</div></div>
