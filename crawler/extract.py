@@ -44,6 +44,7 @@ def getCurrent(env="dev"):
                 game_time = js_result["game_time"]
                 team_name = js_result["team_name"]
                 team_name2 = js_result["team_name2"]
+                leave_time = js_result["leave_time"]
                 total_score_1 = int(js_result["total_score_1"]) if js_result["total_score_1"] else None
                 total_score_2 = int(js_result["total_score_2"]) if js_result["total_score_2"] else None
                 game_session = js_result["game_session"]
@@ -53,7 +54,8 @@ def getCurrent(env="dev"):
                     "current_score": current_score,
                     "game_session": game_session,
                     "total_score_1": total_score_1,
-                    "total_score_2": total_score_2
+                    "total_score_2": total_score_2,
+                    "leave_time": leave_time
                 })
     finally:
         driver.quit()
@@ -90,6 +92,8 @@ def getInit(env="dev"):
                 game_time = js_result["game_time"]
                 team_name = js_result["team_name"]
                 team_name2 = js_result["team_name2"]
+                game_session = js_result["game_session"]
+                leave_time = js_result["leave_time"]
                 total_score_1 = int(js_result["total_score_1"]) if js_result["total_score_1"] else None
                 total_score_2 = int(js_result["total_score_2"]) if js_result["total_score_2"] else None
                 current_score = float(js_result["current_score"]) if js_result["current_score"] else None
@@ -110,10 +114,12 @@ def getInit(env="dev"):
                     "team_name1": team_name,
                     "team_name2": team_name2,
                     "game_time": game_time,
+                    "game_session": game_session,
                     "createTime": int(time.time()),
                     "current_score": current_score,
                     "total_score_1": total_score_1,
-                    "total_score_2": total_score_2
+                    "total_score_2": total_score_2,
+                    "leave_time": leave_time
                 })
                 driver.close()
                 driver.switch_to.window(main_window_handle)
