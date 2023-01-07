@@ -18,7 +18,6 @@ setInterval(async () => {
         if (!((dayjs().unix() - createTime) / 60 / 60 >= process.env.DELAY_TIME_SPAN)) {
             return
         }
-        console.log(createTime)
         // 获取监控时间范围之内的比赛记录并计算让分差
         const {data} = await axios.post("/db/s",
             {createTime: {$gt: dayjs().unix() - process.env.MONITOR_TIME_SPAN * 60 * 60}},
@@ -26,7 +25,6 @@ setInterval(async () => {
                 timeout: 1000 * 60 * 5
             }
         )
-        console.log(data.data)
         const targets = data.data.map(records => {
             // let {_id, isSendEmail,["matchtime,["hometeam,["guestteam,["matchstate, validity,["homescore, total_score_2,["remaintime} = records
             // 取第一个和最后一个
@@ -78,9 +76,29 @@ setInterval(async () => {
             } else {
                 signal = "+"
             }
+            // 比赛状态修改
+            let matchstate = finallyResult["matchstate"]
+            const state = new Object();
+            state[-5] = "推迟";
+            state[-4] = "取消";
+            state[-3] = "中断";
+            state[-2] = "待定";
+            state[-1] = "完";
+            state[0] = "";
+            state[1] = "1节";
+            state[2] = "2节";
+            state[3] = "3节";
+            state[4] = "4节";
+            state[5] = "1'OT";
+            state[6] = "2'OT";
+            state[7] = "3'OT";
+            state["s-1"] = "上";
+            state["s-3"] = "下";
+            state[50] = "中场";
+            finallyResult["matchstate"] = state[matchstate]
             return `
                     <h1>${finallyResult["sclassName"][0]} (${parseInt(finallyResult.validity) * 100}%)</h1>
-                    <h1>${finallyResult["matchtime"].replace("<br>"," ")} ${finallyResult["matchstate"]} [${finallyResult["remaintime"]}]</h1>
+                    <h1>${finallyResult["matchtime"].replace("<br>", " ")} ${finallyResult["matchstate"]} [${finallyResult["remaintime"]}]</h1>
                     <h1>${finallyResult["hometeam"][0]} vs ${finallyResult["guestteam"][0]} (${finallyResult["homescore"]}-${finallyResult["guestscore"]})</h1>
                     <h1>${team_name_line3}: ${signal}${Math.abs(finallyResult["letGoal"])}</h1>
                     <div style="display: flex"><div style="font-weight: bold;">${currentScoreTeamName}当前让分值:</div><div>${finallyResult["letGoal"]}</div></div>
