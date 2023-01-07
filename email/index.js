@@ -80,7 +80,7 @@ setInterval(async () => {
             }
             return `
                     <h1>${finallyResult["sclassName"][0]} (${parseInt(finallyResult.validity) * 100}%)</h1>
-                    <h1>${finallyResult["matchtime"]} ${finallyResult["matchstate"]} [${finallyResult["remaintime"]}]</h1>
+                    <h1>${finallyResult["matchtime"].replace("<br>"," ")} ${finallyResult["matchstate"]} [${finallyResult["remaintime"]}]</h1>
                     <h1>${finallyResult["hometeam"][0]} vs ${finallyResult["guestteam"][0]} (${finallyResult["homescore"]}-${finallyResult["guestscore"]})</h1>
                     <h1>${team_name_line3}: ${signal}${Math.abs(finallyResult["letGoal"])}</h1>
                     <div style="display: flex"><div style="font-weight: bold;">${currentScoreTeamName}当前让分值:</div><div>${finallyResult["letGoal"]}</div></div>
