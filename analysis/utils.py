@@ -50,6 +50,13 @@ def parseJSON(s: str):
     return json.loads(s)
 
 
+def getDateTimeStampFromDatetime(dt: datetime):
+    """
+    获取当前日期的时间撮，不包括时分秒
+    """
+    return int(time.mktime(dt.date().timetuple()))
+
+
 if __name__ == '__main__':
     js = loadJs("./parser.js")
     print(js)

@@ -32,8 +32,8 @@ services:
     #    build: ./database
     depends_on:
       - mongo
-    volumes:
-      - ./database:/app
+#    volumes:
+#      - ./database:/app
     command: sh -c "yarn install && yarn run dev"
     ports:
       - "8000:8000"
@@ -121,8 +121,8 @@ services:
     image: mongo
     command: --wiredTigerCacheSizeGB 2
     restart: always
-    volumes:
-      - ./data/db:/data/db
+#    volumes:
+#      - ./data/db:/data/db
     ports:
       - "27017:27017"
     environment:

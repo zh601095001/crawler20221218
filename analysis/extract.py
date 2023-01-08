@@ -4,7 +4,7 @@ from selenium import webdriver
 import re
 from bs4 import BeautifulSoup
 import requests as rq
-from utils import loadJs, parseJSON
+from utils import loadJs, parseJSON, getDateTimeStampFromDatetime, BASE_URL
 
 SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
 
@@ -63,16 +63,24 @@ def getLogs(start=1, count=365):
     :param count: 往前统计多少天
     :return:
     """
+    logs = []
     for i in range(start, count + 1):
         now = datetime.now()
         startDelta = timedelta(days=i)
-        date = (now - startDelta).date()
-        datas = getCurrent(date, env="")
+        dt = now - startDelta
+        timeStamp = getDateTimeStampFromDatetime(dt)
+        print(timeStamp)
+        datas = getCurrent(dt.date(), env="")
         for data in datas:
             ID = data["ID"]
+            data["_id"] = f"{timeStamp}-{ID}"
             data["records"] = parser(ID)
-        print(datas)
-        print(len(datas))
+            logs.append(data)
+    return logs
+
+
+def save(datas: list):
+    return rq.post(f"{BASE_URL}/db?collection=matchLogs", json=datas).json()
 
 
 if __name__ == '__main__':

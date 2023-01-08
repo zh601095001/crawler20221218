@@ -1,7 +1,7 @@
 import time
 
-from extract import getInit, getCurrent
-from utils import updateLastModifyTime, checkStartTime
+from extract import getInit
+from utils import checkStartTime
 from os import getenv
 import requests as rq
 
@@ -25,25 +25,6 @@ def init_process():
                     rq.post(f"{BASE_URL}/db", json=initGame)
                 else:
                     rq.put(f"{BASE_URL}/db", json=initGame)
-        except Exception as e:
-            print(e)
-
-
-def curr_process():
-    while True:
-        try:
-            currentGames = getCurrent(env="")
-            if currentGames:
-                updateLastModifyTime()
-            for currentGame in currentGames:
-                currentGame["_id"] = currentGame["ID"]
-                res = rq.get(f"{BASE_URL}/db", params={
-                    "_id": currentGame["ID"]
-                })
-                if not res.json()["data"]:
-                    pass
-                else:
-                    rq.put(f"{BASE_URL}/db", json=currentGame)
         except Exception as e:
             print(e)
 

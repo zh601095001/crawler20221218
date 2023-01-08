@@ -1,11 +1,10 @@
 import hashlib
+import re
 from datetime import datetime
 from os import getenv
-import time
-from pprint import pprint
-
+import requests as rq
+from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 
 from utils import loadJs, parseJSON
 
@@ -25,24 +24,6 @@ def getOptions():
     return options
 
 
-def getCurrent(env="dev"):
-    """
-    获取比赛当前信息
-    """
-    options = getOptions()
-    if env == "dev":
-        driver = webdriver.Chrome(options=options)
-    else:
-        options.add_argument('--headless')
-        driver = webdriver.Remote(options=options, command_executor=SELENIUM)
-
-    driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
-    datas = parseJSON(driver.execute_script(loadJs("./parser.js")))
-    driver.quit()
-
-    return datas
-
-
 def getInit(env="dev"):
     """
     获取比赛初始信息
@@ -57,40 +38,39 @@ def getInit(env="dev"):
     lives = parseJSON(driver.execute_script(loadJs("./parser.js")))
     driver.quit()
     for live in lives:
-        options = getOptions()
-        if env == "dev":
-            driver = webdriver.Chrome(options=options)
-        else:
-            options.add_argument('--headless')
-            driver = webdriver.Remote(options=options, command_executor=SELENIUM)
-        driver.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={live['ID']}")
-        elem = driver.find_element(By.XPATH, '//*[@id="main"]/div[3]/table/tbody').find_elements(By.TAG_NAME, "tr")[-1]  # 获取最后一列
-        start_score = elem.find_elements(By.TAG_NAME, "td")[3].text  # 获取初始让分值
-        try:
-            start_score = float(start_score)
-        except Exception as e:
-            start_score = None
-        live["start_score"] = start_score
-        driver.quit()
+        soup = BeautifulSoup(rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={live['ID']}").text, 'html.parser')
+        tables = soup.find_all("table", class_="gts")
+        if not tables:
+            continue
+        changeRecord = tables[0]
 
+        def getRecords(record):
+            return list(map(lambda td: td.text, record.find_all("td")))
+
+        records = list(map(getRecords, changeRecord.find_all("tr", re.compile("gt[12]"))))
+        records.reverse()
+        firstCount = records[0][3]
+        countRecords = []
+        for record in records:
+            if not record[0]:
+                countRecords.append(record)
+            else:
+                break
+        lastCount = countRecords[-1][3]
+        try:
+            firstCount = float(firstCount)
+            lastCount = float(lastCount)
+        except Exception as e:
+            print(e)
+            firstCount = None
+            lastCount = None
+        live["firstCount"] = firstCount
+        live["lastCount"] = lastCount
     return lives
 
 
-def test1():
-    st = time.time()
-    count = 100
-    for i in range(count):
-        try:
-            getCurrent(env="")
-        except Exception as e:
-            count -= 1
-    et = time.time()
-    print(count)
-    print((et - st) / count)
-
-
 def testInit():
-    print(getInit(env=""))
+    getInit(env="")
 
 
 if __name__ == '__main__':

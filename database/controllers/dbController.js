@@ -16,7 +16,7 @@ const getItems = async (req, res) => {
 }
 
 const searchItem = async (req, res) => {
-    console.log( req.body)
+    console.log(req.body)
     try {
         let {limit, skip, ...extraQuery} = req.body
         limit = limit ? Number(limit) : 1000
@@ -34,7 +34,7 @@ const addItems = async (req, res) => {
     try {
         const data = req.body
         if (data instanceof Array) {
-            return res.json(await req.collection.insertMany(data))
+            return res.json(await req.collection.insertMany(data, {ordered: false}))
         }
         if (Object.prototype.toString.call(data) === "[object Object]") {
             return res.json(await req.collection.insertOne(data))

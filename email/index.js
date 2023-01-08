@@ -28,7 +28,8 @@ setInterval(async () => {
         const targets = data.data.map(records => {
             // let {_id, isSendEmail,["matchtime,["hometeam,["guestteam,["matchstate, validity,["homescore, total_score_2,["remaintime} = records
             // 取第一个和最后一个
-            const start_score = records["start_score"]
+            const start_score = (process.env.stratScoreType || records[process.env.stratScoreType]) || records["firstCount"] // 确定是终盘还是初盘，默认初盘
+            records["start_score"] = start_score
             const letGoal = records["letGoal"]
             // 计算分差
             let extremum = null // 当前值相对初始值情况
