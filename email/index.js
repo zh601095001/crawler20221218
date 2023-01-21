@@ -6,6 +6,18 @@ const dayjs = require("dayjs")
 
 setInterval(async () => {
     try {
+        // 获取设置信息
+        const settings = (await axios.get("/db", {
+            params: {
+                collection: "settings",
+            },
+            timeout: 1000 * 60 * 5
+        })).data.data
+        const basicSettings = settings.filter(setting => setting._id === "basicSettings")[0]
+        const matchSettings = settings.filter(setting => !(setting._id === "basicSettings"))
+        // console.log(basicSettings)
+        // console.log(settings)
+        // console.log(matchSettings, "match")
         // 判断启动时间是否大于延迟监听时间
         const responseTime = await axios.get("/db", {
             params: {
@@ -15,45 +27,95 @@ setInterval(async () => {
             timeout: 1000 * 60 * 5
         })
         const createTime = responseTime.data.data[0].createTime
-        if (!((dayjs().unix() - createTime) / 60 / 60 >= process.env.DELAY_TIME_SPAN)) {
+        if (!((dayjs().unix() - createTime) / 60 / 60 >= basicSettings.delayTimeSpan)) {
             return
         }
         // 获取监控时间范围之内的比赛记录并计算让分差
         const {data} = await axios.post("/db/s",
-            {createTime: {$gt: dayjs().unix() - process.env.MONITOR_TIME_SPAN * 60 * 60}},
+            {createTime: {$gt: dayjs().unix() - basicSettings.monitorTimeSpan * 60 * 60}},
             {
                 timeout: 1000 * 60 * 5
             }
         )
-        const targets = data.data.map(records => {
-            // let {_id, isSendEmail,["matchtime,["hometeam,["guestteam,["matchstate, validity,["homescore, total_score_2,["remaintime} = records
-            // 取第一个和最后一个
-            const start_score = (process.env.stratScoreType || records[process.env.stratScoreType]) || records["firstCount"] // 确定是终盘还是初盘，默认初盘
-            records["start_score"] = start_score
-            const letGoal = records["letGoal"]
-            // 计算分差
-            let extremum = null // 当前值相对初始值情况
-            if (start_score && letGoal) {
-                extremum = letGoal - start_score
-            }
-            let type
-            if (extremum) {
-                type = extremum >= 0 ? "增量" : "减量"// 初始让分为正=>减量 负=>增量
-            } else {
-                type = null
-            }
-            records["extremum"] = extremum
-            records["type"] = type
-            records["validity"] = records["validity"] || 0.0
-            return records
-        })
+        const targets = data.data
+            .filter(records => {
+                const setting = settings.filter(item => {
+                    if (!item.matchName) {
+                        return false
+                    }
+                    // console.log(records["sclassName"][0])
+                    return item.matchName.indexOf(records["sclassName"][0]) !== -1
+                })[0]
+                if (!setting) {
+                    return false
+                } else {
+                    records["setting"] = setting
+                    return true
+                }
+            })
+            .map(records => {
+                // console.log(records.setting)
+                // let {_id, isSendEmail,["matchtime,["hometeam,["guestteam,["matchstate, validity,["homescore, total_score_2,["remaintime} = records
+                // 取第一个和最后一个
+                let start_score
+                if (records.setting.data.panName === "初盘") {
+                    start_score = records["firstCount"] // 确定是终盘还是初盘，默认初盘
+                } else {
+                    start_score = records["lastCount"] // 确定是终盘还是初盘，默认初盘
+                }
+                records["start_score"] = start_score
+                const letGoal = records["letGoal"]
+                // 计算分差
+                let extremum = null // 当前值相对初始值情况
+                if (start_score && letGoal) {
+                    extremum = letGoal - start_score
+                }
+                let type
+                if (extremum) {
+                    type = extremum >= 0 ? "增量" : "减量"// 初始让分为正=>减量 负=>增量
+                } else {
+                    type = null
+                }
+                records["extremum"] = extremum
+                records["type"] = type
+                // 判断档位
+                let level
+                const inc_table = Object.entries(records.setting.data.inc_table)
+                const inc_table_length = inc_table.length
+                Object.entries(records.setting.data.inc_table).forEach(([index, item]) => {
+                    index = parseInt(index)
+                    if (index === 0 && start_score <= item.initialLetGoal[1]) {
+                        level = 0
+                    } else if (index === inc_table_length - 1 && start_score >= item.initialLetGoal[0]) {
+                        level = index
+                    } else if (start_score > item.initialLetGoal[0] && start_score <= item.initialLetGoal[1]) {
+                        level = index
+                    }
+                })
+                records["level"] = level
+                // records["validity"] = records["validity"] || 0.0
+                return records
+            })
         const finallyResults = targets
             // 阈值大于设定值
             .filter(target => {
+                if (!target.level) {
+                    return false
+                }
                 if (target.extremum && target.type === "增量") {
-                    return Math.abs(target.extremum) >= process.env.INC_THRESHOLD
+                    const {threshold, Validity, isEffect} = target.setting.data.inc_table[`${target.level}`]
+                    target["Validity"] = Validity
+                    target["inc_threshold"] = threshold
+                    target["isEffect"] = isEffect
+                    console.log(target)
+                    return Math.abs(target.extremum) >= threshold
                 } else if (target.extremum && target.type === "减量") {
-                    return Math.abs(target.extremum) >= process.env.DES_THRESHOLD
+                    const {threshold, Validity, isEffect} = target.setting.data.des_table[`${target.level}`]
+                    target["Validity"] = Validity
+                    target["des_threshold"] = threshold
+                    target["isEffect"] = isEffect
+                    console.log(target)
+                    return Math.abs(target.extremum) >= threshold
                 } else {
                     return false
                 }
@@ -65,7 +127,7 @@ setInterval(async () => {
                 return !(!target["start_score"] || !target["letGoal"]);
             })
         const displayResult = finallyResults.map(finallyResult => {
-            const THRESHOLD_WITH_TYPE = finallyResult.type === "增量" ? process.env.INC_THRESHOLD : process.env.DES_THRESHOLD
+            const THRESHOLD_WITH_TYPE = finallyResult.type === "增量" ? finallyResult.inc_threshold : finallyResult.des_threshold
             let initScoreTeamName = finallyResult["start_score"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
             let currentScoreTeamName = finallyResult["letGoal"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
             const team_name_line3 = finallyResult.type === "减量" ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
@@ -79,7 +141,7 @@ setInterval(async () => {
             }
             // 比赛状态修改
             let matchstate = finallyResult["matchstate"]
-            const state = new Object();
+            const state = {};
             state[-5] = "推迟";
             state[-4] = "取消";
             state[-3] = "中断";
@@ -98,7 +160,7 @@ setInterval(async () => {
             state[50] = "中场";
             finallyResult["matchstate"] = state[matchstate]
             return `
-                    <h1>${finallyResult["sclassName"][0]} (${parseInt(finallyResult.validity) * 100}%)</h1>
+                    <h1>${finallyResult["sclassName"][0]} (${finallyResult.Validity}) ${finallyResult.isEffect ? "<span style='color: #3ace23'>有效比赛</span>" : "<span style='color: red'>无效比赛</span>"}</h1>
                     <h1>${finallyResult["matchtime"].replace("<br>", " ")} ${finallyResult["matchstate"]} [${finallyResult["remaintime"]}]</h1>
                     <h1>${finallyResult["hometeam"][0]} vs ${finallyResult["guestteam"][0]} (${finallyResult["homescore"]}-${finallyResult["guestscore"]})</h1>
                     <h1>${team_name_line3}: ${signal}${Math.abs(finallyResult["letGoal"])}</h1>
@@ -112,16 +174,15 @@ setInterval(async () => {
         }).join("")
 
         if (finallyResults.length) {
-            await sendEmail({
-                to: process.env.RECEIVE_EMAIL || process.env.EMAIL_USER,
-                subject: "篮球实时数据通知",
-                content: displayResult
-            })
-            await sendEmail({
-                to: "601095001@qq.com",
-                subject: "篮球实时数据通知",
-                content: displayResult
-            })
+            for (const email of basicSettings.receiveEmails) {
+                await sendEmail({
+                    to: email,
+                    subject: "篮球实时数据通知",
+                    content: displayResult,
+                    ...basicSettings
+                })
+            }
+
             console.log(finallyResults)
         }
         finallyResults.forEach(result => {

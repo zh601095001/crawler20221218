@@ -1,0 +1,54 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 !important;
+
+  :global {
+    .left, .right {
+      display: flex;
+      align-items: center;
+    }
+
+    .right {
+      margin-right: 10px;
+    }
+
+    .logo {
+      width: 250px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: gray;
+      font-weight: bold;
+      font-size: 20px;
+      color: white;
+    }
+
+
+  }
+}
+
+.content {
+  padding: 50px;
+}
+
+.popupContent {
+  :global {
+    .ant-list-header, .ant-spin-nested-loading .ant-list-item {
+      padding: 5px 12px;
+    }
+
+    .ant-spin-nested-loading .ant-list-item:hover {
+      background: aqua;
+    }
+  }
+
+}
+
+
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

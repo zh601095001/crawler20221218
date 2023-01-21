@@ -20,7 +20,8 @@ def getOptions():
     options.add_argument('--disable-gpu')
     options.add_argument("--disable-application-cache")
     options.add_argument('blink-settings=imagesEnabled=false')
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
+    options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
     return options
 
 
@@ -38,7 +39,8 @@ def getInit(env="dev"):
     lives = parseJSON(driver.execute_script(loadJs("./parser.js")))
     driver.quit()
     for live in lives:
-        soup = BeautifulSoup(rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={live['ID']}").text, 'html.parser')
+        soup = BeautifulSoup(rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={live['ID']}").text,
+                             'html.parser')
         tables = soup.find_all("table", class_="gts")
         if not tables:
             continue
@@ -49,15 +51,15 @@ def getInit(env="dev"):
 
         records = list(map(getRecords, changeRecord.find_all("tr", re.compile("gt[12]"))))
         records.reverse()
-        firstCount = records[0][3]
-        countRecords = []
-        for record in records:
-            if not record[0]:
-                countRecords.append(record)
-            else:
-                break
-        lastCount = countRecords[-1][3]
         try:
+            firstCount = records[0][3]
+            countRecords = []
+            for record in records:
+                if not record[0]:
+                    countRecords.append(record)
+                else:
+                    break
+            lastCount = countRecords[-1][3]
             firstCount = float(firstCount)
             lastCount = float(lastCount)
         except Exception as e:

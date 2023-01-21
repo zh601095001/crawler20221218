@@ -1,36 +1,40 @@
 const status = require('http-status')
 const {flatten} = require('mongo-dot-notation')
-const getItems = async (req, res) => {
+const getItems = async (req, res, next) => {
     try {
         let {limit, skip, ...extraQuery} = req.query
         limit = limit ? Number(limit) : 1000
         skip = skip ? Number(skip) : 0
         const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
         const data = await cur.toArray()
-        const count = await req.collection.countDocuments()
+        const count = await req.collection.countDocuments(extraQuery)
         await req.mongoClient.close()
         res.json({data, count, skip, limit})
+    } catch (e) {
+        next(e)
     } finally {
         await req.mongoClient.close()
     }
 }
 
-const searchItem = async (req, res) => {
-    console.log(req.body)
+const searchItem = async (req, res, next) => {
     try {
         let {limit, skip, ...extraQuery} = req.body
+        console.log(extraQuery)
         limit = limit ? Number(limit) : 1000
         skip = skip ? Number(skip) : 0
         const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
         const data = await cur.toArray()
-        const count = await req.collection.countDocuments()
+        const count = await req.collection.countDocuments(extraQuery)
         await req.mongoClient.close()
         res.json({data, count, skip, limit})
+    } catch (e) {
+        next(e)
     } finally {
         await req.mongoClient.close()
     }
 }
-const addItems = async (req, res) => {
+const addItems = async (req, res, next) => {
     try {
         const data = req.body
         if (data instanceof Array) {
@@ -40,14 +44,16 @@ const addItems = async (req, res) => {
             return res.json(await req.collection.insertOne(data))
         }
     } catch (e) {
-        return res.status(status.CONFLICT).json({
+        res.status(status.CONFLICT).json({
             msg: e.toString()
         })
+        next(e)
     } finally {
         await req.mongoClient.close()
     }
 }
-const modifyItems = async (req, res) => {
+const modifyItems = async (req, res, next) => {
+    console.log(req.body)
     try {
         const updateOne = async ({_id, ...extras}) => {
             return await req.collection.updateMany({_id}, flatten(extras))
@@ -62,13 +68,15 @@ const modifyItems = async (req, res) => {
         return res.status(status.UNPROCESSABLE_ENTITY).json({
             errMsg: "参数格式不正确"
         })
+    } catch (e) {
+        next(e)
     } finally {
         await req.mongoClient.close()
     }
 
 }
 
-const deleteItems = async (req, res) => {
+const deleteItems = async (req, res, next) => {
     try {
         if (req.body instanceof Array) {
             const info = req.body.map(async item => {
@@ -82,6 +90,8 @@ const deleteItems = async (req, res) => {
         return res.status(status.UNPROCESSABLE_ENTITY).json({
             errMsg: "参数格式不正确"
         })
+    } catch (e) {
+        next(e)
     } finally {
         await req.mongoClient.close()
     }

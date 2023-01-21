@@ -1,13 +1,6 @@
-class A{
-    // [Symbol.toStringTag] = "A"
-    constructor(arg1) {
-        this.arg1 = arg1
-        // this[Symbol.toStringTag] = "A"
-    }
-    log(){
-        console.log(this.arg1)
-    }
-}
-let a = new A()
-a.log()
-console.log(Object.prototype.toString.call(a));
+const {MongoClient} = require("mongodb")
+
+const mongoClient = await MongoClient.connect(process.env.DATABASE_URI)
+const database = mongoClient.db( "defaultDb")
+const collection = database.collection("defaultCollection")
+const cur = req.collection.find(extraQuery).skip(skip).limit(limit)

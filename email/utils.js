@@ -1,16 +1,16 @@
 const nodemailer = require("nodemailer");
 
-async function sendEmail({to, subject, content}) {
+async function sendEmail({emailHost, emailPort, emailUser, emailPassword, to, subject, content}) {
     let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: emailHost,
+        port: emailPort,
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD,
+            user: emailUser,
+            pass: emailPassword,
         }
     });
     let mailOptions = {
-        from: `"Basketball Info" <${process.env.EMAIL_USER}>`,
+        from: `"Basketball Info" <${emailUser}>`,
         to: to,
         subject: subject,
         html: content

@@ -1,0 +1,66 @@
+{
+  "name": "full",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@ant-design/charts": "^1.4.2",
+    "@ant-design/icons": "^4.7.0",
+    "@craco/craco": "^6.4.5",
+    "@reduxjs/toolkit": "^1.8.3",
+    "@sendgrid/mail": "^7.7.0",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^13.0.0",
+    "@testing-library/user-event": "^13.2.1",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.7.13",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "antd": "^4.22.1",
+    "bcrypt": "^5.0.1",
+    "craco-antd": "^2.0.0",
+    "craco-less": "^2.0.0",
+    "dotenv": "^16.0.1",
+    "firebase": "^9.9.4",
+    "history": "^5.3.0",
+    "http-proxy-middleware": "^2.0.6",
+    "md5": "^2.3.0",
+    "moment": "^2.29.4",
+    "nodemon": "^2.0.19",
+    "qs": "^6.11.0",
+    "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "5.0.1",
+    "redux": "^4.2.0",
+    "typescript": "^4.4.2",
+    "web-vitals": "^2.1.0"
+  },
+  "scripts": {
+    "start": "nodemon -w craco.config.js  --exec 'craco start'",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject",
+    "serve": "nodemon --exec 'node ./backend/server.js'"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

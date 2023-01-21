@@ -1,5 +1,18 @@
 version: "3.7"
 services:
+  analysis:
+    image: zhlcy2022/analysis
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./analysis:/app
+    command: sh -c "python main.py"
+    ports:
+      - "5000:5000"
+    environment:
+      BASE_URL: http://database:8000
+
   #  爬虫服务
   crawlerinit:
     image: zhlcy2022/crawlerinit
@@ -9,7 +22,7 @@ services:
       - database
     volumes:
       - ./crawlerinit:/app
-    command: sh -c "python main.py"
+    command: sh -c "python3 main.py"
     environment:
       BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
@@ -21,7 +34,7 @@ services:
       - database
     volumes:
       - ./crawlercurrent:/app
-    command: sh -c "python main.py"
+    command: sh -c "python3 main.py"
     environment:
       BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
@@ -32,13 +45,15 @@ services:
     #    build: ./database
     depends_on:
       - mongo
-#    volumes:
-#      - ./database:/app
-    command: sh -c "yarn install && yarn run dev"
+    volumes:
+      - ./database:/app
+
+    command: sh -c "yarn install && yarn start"
     ports:
       - "8000:8000"
     environment:
       DATABASE_URI: mongodb://root:example@mongo:27017
+      ANALYSIS_URL: http://analysis:5000
       PORT: 8000
     #  邮件服务
   email:
@@ -51,24 +66,10 @@ services:
       - crawlercurrent
     volumes:
       - ./email:/app
-    command: sh -c "yarn install && yarn run dev"
+    command: sh -c "yarn install && yarn start"
     environment:
       BASE_URL: http://database:8000
       # email
-      EMAIL_HOST: 'smtp.qq.com'
-      EMAIL_PORT: 465
-      # 你的QQ账号
-      EMAIL_USER: 601095001@qq.com
-      EMAIL_PASSWORD: bwgnohvkfyyhbdca
-      # 延迟监听时间，单位: hour
-      DELAY_TIME_SPAN: 0
-      # 监听实时时间之前多久的数据
-      MONITOR_TIME_SPAN: 3
-      # 让分阈值
-      INC_THRESHOLD: 10
-      DES_THRESHOLD: 10
-      # 接收邮箱
-      RECEIVE_EMAIL: 759126132@qq.com
   chrome:
     image: zhlcy2022/chrome
     build: ./chrome
@@ -106,23 +107,14 @@ services:
       - "4442:4442"
       - "4443:4443"
       - "4444:4444"
-  #    environment:
 
-  #  seleniumGrid:
-  #    image: selenium/standalone-chrome
-  #    shm_size: 2gb
-  #    environment:
-  #      - SE_NODE_SESSION_TIMEOUT = 10
-  #    ports:
-  #      - "4444:4444"
-  #      - "7900:7900"
   # mongodb
   mongo:
     image: mongo
     command: --wiredTigerCacheSizeGB 2
     restart: always
-#    volumes:
-#      - ./data/db:/data/db
+    #    volumes:
+    #      - ./data/db:/data/db
     ports:
       - "27017:27017"
     environment:

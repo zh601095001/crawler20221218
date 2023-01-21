@@ -1,4 +1,4 @@
-FROM python:3-alpine3.16
+FROM node:16.17.1-alpine3.15
 WORKDIR /app
 RUN apk add --no-cache python3 g++ make gcc
 RUN apk add wget && wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py
