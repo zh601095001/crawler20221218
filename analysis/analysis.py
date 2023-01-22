@@ -57,7 +57,11 @@ def step01(dateRange):
 
     # ['时间', '比分', '主', '盘', '客', '变化', '状']
     def filterNullRecords(data):
-        return bool(data["records"])
+        try:
+            if np.isnan(data):
+                return False
+        except Exception as e:
+            return bool(data["records"])
 
     cond2 = df["records"].map(filterNullRecords)
     df = df[cond2]

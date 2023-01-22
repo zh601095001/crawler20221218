@@ -4,3 +4,6 @@ data
 log.txt
 16*
 jupyter
+*.log
+*.json
+sum.json

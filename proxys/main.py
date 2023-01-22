@@ -9,7 +9,16 @@ BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
 
 
 def getIps(num):
-    auth = kdl.Auth("o9ufnmidxdwf6xcjurnd", "qite954mcds6jmcs5xusmwlwshf3mh4c")
+    settings = rq.post(f"{BASE_URL}/db/s",
+                       params={
+                           "collection": "settings"
+                       },
+                       json={
+                           "_id": "basicSettings"
+                       }).json()["data"][0]
+    secretId = settings["secretId"]
+    secretKey = settings["secretKey"]
+    auth = kdl.Auth(secretId, secretKey)
     client = kdl.Client(auth)
     ips = client.get_dps(num, format='json')
     valids = client.check_dps_valid(ips)
@@ -68,7 +77,15 @@ def log(obj: [list, dict]):
 if __name__ == '__main__':
     while True:
         try:
-            log(checkAlive(aliveCount=5, newCount=5))
+            settings = rq.post(f"{BASE_URL}/db/s",
+                               params={
+                                   "collection": "settings"
+                               },
+                               json={
+                                   "_id": "basicSettings"
+                               }).json()["data"][0]
+            count = settings["proxyNumber"]
+            log(checkAlive(aliveCount=count, newCount=count))
         except Exception as e:
             time.sleep(1)
             print(e)

@@ -1,5 +1,14 @@
-import kdl
+from main import BASE_URL
+import requests as rq
 
-auth = kdl.Auth("o9ufnmidxdwf6xcjurnd1", "qite954mcds6jmcs5xusmwlwshf3mh4c")
-client = kdl.Client(auth)
-ips = client.get_dps(1, format='json')
+res = rq.post(f"{BASE_URL}/db/s",
+              params={
+                  "collection": "settings"
+              },
+              json={
+                  "_id": "basicSettings"
+              }).json()["data"][0]
+print(res)
+secretId = res["secretId"]
+secretKey = res["secretKey"]
+print(secretId, secretKey)

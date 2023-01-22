@@ -3,10 +3,12 @@ from datetime import datetime
 from os import getenv
 import time
 from selenium import webdriver
-
-from utils import loadJs, parseJSON
+from log import getLogger
+from utils import loadJs, parseJSON, getProxy, updateStatus
 
 SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
+
+logger = getLogger()
 
 
 def convertMd5(s):
@@ -14,30 +16,38 @@ def convertMd5(s):
 
 
 def getOptions():
+    # proxys = getProxy()
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-gpu')
     options.add_argument("--disable-application-cache")
     options.add_argument('blink-settings=imagesEnabled=false')
+    options.add_argument('--headless')
+    # options.add_argument(f'--proxy-server=http://{proxys["proxys"]["http"]}')
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-    return options
+    return [
+        options,
+        # proxys["_id"]
+    ]
 
 
-def getCurrent(env="dev"):
+def getCurrent():
     """
     获取比赛当前信息
     """
-    options = getOptions()
-    if env == "dev":
-        driver = webdriver.Chrome(options=options)
-    else:
-        options.add_argument('--headless')
-        driver = webdriver.Remote(options=options, command_executor=SELENIUM)
-
-    driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
-    datas = parseJSON(driver.execute_script(loadJs("./parser.js")))
-    driver.quit()
-
-    return datas
+    [
+        options,
+        # _id
+    ] = getOptions()
+    driver = webdriver.Remote(options=options, command_executor=SELENIUM)
+    try:
+        driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
+        datas = parseJSON(driver.execute_script(loadJs("./parser.js")))
+        return datas
+    except Exception as e:
+        logger.error(f"抓取主页失败:{e}")
+        # updateStatus(_id)
+    finally:
+        driver.quit()
 
 
 def test1():
@@ -45,7 +55,7 @@ def test1():
     count = 100
     for i in range(count):
         try:
-            getCurrent(env="")
+            getCurrent()
         except Exception as e:
             count -= 1
     et = time.time()

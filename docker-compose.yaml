@@ -12,6 +12,16 @@ services:
       - "5000:5000"
     environment:
       BASE_URL: http://database:8000
+  proxys:
+    image: zhlcy2022/proxys
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./proxys:/app
+    command: sh -c "python main.py"
+    environment:
+      BASE_URL: http://database:8000
 
   #  爬虫服务
   crawlerinit:
@@ -34,6 +44,18 @@ services:
       - database
     volumes:
       - ./crawlercurrent:/app
+    command: sh -c "python3 main.py"
+    environment:
+      BASE_URL: http://database:8000
+      SELENIUM: http://selenium-hub:4444
+  crawlerhistory:
+    image: zhlcy2022/crawlerhistory
+    #    build: ./crawler
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./crawlerhistory:/app
     command: sh -c "python3 main.py"
     environment:
       BASE_URL: http://database:8000

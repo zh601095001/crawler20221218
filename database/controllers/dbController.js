@@ -53,7 +53,10 @@ const addItems = async (req, res, next) => {
     }
 }
 const modifyItems = async (req, res, next) => {
-    console.log(req.body)
+    const data = await req.collection.find({_id: req.body._id}).toArray()
+    if (!data.length) {
+        await req.collection.insertOne({_id: req.body._id})
+    }
     try {
         const updateOne = async ({_id, ...extras}) => {
             return await req.collection.updateMany({_id}, flatten(extras))

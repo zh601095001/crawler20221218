@@ -1,11 +1,5 @@
-def test():
-    count = 0
-    while True:
-        if count > 10:
-            return count
-        else:
-            count += 1
+import random
 
-
-if __name__ == '__main__':
-    print(test())
+li = [1, 2, 3, 4, 5]
+random.shuffle(li)
+print(li)

@@ -21,8 +21,8 @@ app.use(
     createProxyMiddleware({
         target: "http://localhost:8000/db",
         changeOrigin: true,
-        pathRewrite: {'^/settings': ''}
-
+        pathRewrite: {'^/settings': ''},
+        proxyTimeout: 60 * 60 * 1000
     })
 )
 app.use(
@@ -30,12 +30,13 @@ app.use(
     createProxyMiddleware({
         target: process.env.ANALYSIS_URL,
         changeOrigin: true,
-        pathRewrite: {'^/analysis': ''}
+        pathRewrite: {'^/analysis': ''},
+        proxyTimeout: 60 * 60 * 1000
 
     })
 )
 // Connect to MongoDB
-connectDB();
+// connectDB();
 
 app.use(mongodbMiddleWare)
 
@@ -85,11 +86,16 @@ app.all('*', (req, res) => {
 
 app.use(errorHandler);
 
-mongoose.connection.once('open', () => {
-    const DB_URL = argv.db || process.env.DATABASE_URI
-    console.log(`Connected to MongoDB ${DB_URL}`);
-    app.listen(PORT, () => {
-        const host = 'http://localhost'
-        console.log(`Server running at ${host}:${PORT}\nDocs: ${host}:${PORT}/docs`)
-    });
+// mongoose.connection.once('open', () => {
+//     const DB_URL = argv.db || process.env.DATABASE_URI
+//     console.log(`Connected to MongoDB ${DB_URL}`);
+//     app.listen(PORT, () => {
+//         const host = 'http://localhost'
+//         console.log(`Server running at ${host}:${PORT}\nDocs: ${host}:${PORT}/docs`)
+//     });
+// });
+app.timeout = 30 * 60 * 1000 //  超时时间 30min
+app.listen(PORT, () => {
+    const host = 'http://localhost'
+    console.log(`Server running at ${host}:${PORT}\nDocs: ${host}:${PORT}/docs`)
 });

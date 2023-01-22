@@ -1,7 +1,7 @@
 import json
 import time
 from datetime import datetime
-
+from random import shuffle
 import requests as rq
 from os import getenv
 
@@ -48,6 +48,54 @@ def loadJs(path, *args):
 
 def parseJSON(s: str):
     return json.loads(s)
+
+
+def getProxy(status=True):
+    datas = rq.post(f"{BASE_URL}/db/s",
+                    params={
+                        "collection": "proxy",
+                    },
+                    json={
+                        "limit": 4000,
+                        "isAlive": status,
+                        "lastModify": {"$lt": int(time.time()) - 1}
+                    }).json()["data"]
+    settings = rq.post(f"{BASE_URL}/db/s",
+                       params={
+                           "collection": "settings"
+                       },
+                       json={
+                           "_id": "basicSettings"
+                       }).json()["data"][0]
+    username = settings["proxyUsername"]
+    password = settings["proxyPassword"]
+    if datas:
+        shuffle(datas)
+        data = datas[0]
+        data["lastModify"] = int(time.time())
+        rq.put(f"{BASE_URL}/db/s",
+               params={
+                   "collection": "proxy",
+               },
+               json=data)
+        url = data["http"]
+        data["proxys"] = {
+            "http": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url},
+            "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url}
+        }
+        return data
+    else:
+        return None
+
+
+def updateStatus(_id, status=False):
+    return rq.put(f"{BASE_URL}/db", params={
+        "collection": "proxy"
+    }, json={
+        "_id": _id,
+        "isAlive": status,
+        "lastModify": int(time.time())
+    }).json()
 
 
 if __name__ == '__main__':

@@ -76,13 +76,16 @@ function Settings() {
                     <Form.Item label="监控时间范围(h)" name="monitorTimeSpan">
                         <InputNumber/>
                     </Form.Item>
+                    <Form.Item label="历史数据抓取天数" name="historyCrawlerDay">
+                        <InputNumber/>
+                    </Form.Item>
                     <Form.Item label="邮件接收邮箱" name="receiveEmails">
                         <Select mode="tags" open={false}/>
                     </Form.Item>
                     <Form.Item label="代理订单API SecretId" name="secretId">
                         <Input/>
                     </Form.Item>
-                    <Form.Item label="代理订单API SecretKey" name="secretId">
+                    <Form.Item label="代理订单API SecretKey" name="secretKey">
                         <Input.Password/>
                     </Form.Item>
                     <Form.Item label="私密代理用户名" name="proxyUsername">
@@ -90,6 +93,9 @@ function Settings() {
                     </Form.Item>
                     <Form.Item label="私密代理密码" name="proxyPassword">
                         <Input.Password/>
+                    </Form.Item>
+                    <Form.Item label="每次提取代理数" name="proxyNumber">
+                        <InputNumber/>
                     </Form.Item>
                 </Form>
                 <div style={{fontWeight: "bold", fontSize: 16, marginTop: 10}}>联赛设置</div>

@@ -4,8 +4,10 @@ from extract import getInit
 from utils import checkStartTime
 from os import getenv
 import requests as rq
+from log import getLogger
 
 BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
+logger = getLogger()
 
 
 def init_process():
@@ -13,7 +15,7 @@ def init_process():
         time.sleep(5)
         try:
             checkStartTime()
-            initGames = getInit(env="")
+            initGames = getInit()
             for initGame in initGames:
                 initGame["_id"] = initGame["ID"]
                 res = rq.get(f"{BASE_URL}/db", params={
@@ -26,7 +28,7 @@ def init_process():
                 else:
                     rq.put(f"{BASE_URL}/db", json=initGame)
         except Exception as e:
-            print(e)
+            logger.error(f"初始让分全局错误:{e}")
 
 
 if __name__ == '__main__':

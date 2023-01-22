@@ -2,10 +2,9 @@ import json
 import re
 import time
 from datetime import datetime
-
+from random import shuffle
 import requests as rq
 from os import getenv
-import numpy as np
 
 from bs4 import BeautifulSoup
 
@@ -61,14 +60,14 @@ def getDateTimeStampFromDatetime(dt: datetime):
     return int(time.mktime(dt.date().timetuple()))
 
 
-def getProxys(status=True):
-    return rq.post(f"{BASE_URL}/db/s",
-                   params={
-                       "collection": "proxy"
-                   },
-                   json={
-                       "isAlive": status
-                   }).json()
+# def getProxys(status=True):
+#     return rq.post(f"{BASE_URL}/db/s",
+#                    params={
+#                        "collection": "proxy"
+#                    },
+#                    json={
+#                        "isAlive": status
+#                    }).json()
 
 
 def getProxy(status=True):
@@ -81,8 +80,18 @@ def getProxy(status=True):
                         "isAlive": status,
                         "lastModify": {"$lt": int(time.time()) - 1}
                     }).json()["data"]
+    settings = rq.post(f"{BASE_URL}/db/s",
+                       params={
+                           "collection": "settings"
+                       },
+                       json={
+                           "_id": "basicSettings"
+                       }).json()["data"][0]
+    username = settings["proxyUsername"]
+    password = settings["proxyPassword"]
     if datas:
-        data = np.random.choice(datas)
+        shuffle(datas)
+        data = datas[0]
         data["lastModify"] = int(time.time())
         rq.put(f"{BASE_URL}/db/s",
                params={
@@ -90,8 +99,6 @@ def getProxy(status=True):
                },
                json=data)
         url = data["http"]
-        username = "759126132"
-        password = "sq6g9ci2"
         data["proxys"] = {
             "http": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url},
             "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url}
