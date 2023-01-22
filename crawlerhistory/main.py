@@ -108,7 +108,7 @@ if __name__ == '__main__':
                            "_id": "basicSettings"
                        }).json()["data"][0]
     day = settings["historyCrawlerDay"]
-    logs = getLogs(1, day)
+    logs = getLogs(2, day)
     while True:
         try:
             time.sleep(60)
