@@ -12,6 +12,13 @@ services:
       - "5000:5000"
     environment:
       BASE_URL: http://database:8000
+    deploy:
+      resources:
+        limits:
+          #cpus: '0.50'
+          memory: 8gb
+    oom_kill_disable: true
+
   proxys:
     image: zhlcy2022/proxys
     depends_on:
