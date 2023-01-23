@@ -130,7 +130,21 @@ setInterval(async () => {
             const THRESHOLD_WITH_TYPE = finallyResult.type === "增量" ? finallyResult.inc_threshold : finallyResult.des_threshold
             let initScoreTeamName = finallyResult["start_score"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
             let currentScoreTeamName = finallyResult["letGoal"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
-            const team_name_line3 = finallyResult.type === "减量" ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
+            // let team_name_line3 = finallyResult.type === "减量" ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
+            let team_name_line3
+            if (finallyResult.type === "减量") {
+                if (!finallyResult.isEffect) {
+                    team_name_line3 = finallyResult["guestteam"][0]
+                } else {
+                    team_name_line3 = finallyResult["hometeam"][0]
+                }
+            } else {
+                if (!finallyResult.isEffect) {
+                    team_name_line3 = finallyResult["hometeam"][0]
+                } else {
+                    team_name_line3 = finallyResult["guestteam"][0]
+                }
+            }
             let signal
             if (finallyResult["start_score"] > 0 && finallyResult.type === "减量" && finallyResult["letGoal"] >= 0) {
                 signal = "-"
@@ -138,6 +152,14 @@ setInterval(async () => {
                 signal = "-"
             } else {
                 signal = "+"
+            }
+            if (!finallyResult.isEffect) {
+                if (signal === "+") {
+                    signal = "-"
+                }
+                if (signal === "-") {
+                    signal = "+"
+                }
             }
             // 比赛状态修改
             let matchstate = finallyResult["matchstate"]

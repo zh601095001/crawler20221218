@@ -77,6 +77,7 @@ def log(obj: [list, dict]):
 if __name__ == '__main__':
     while True:
         try:
+            time.sleep(5)
             settings = rq.post(f"{BASE_URL}/db/s",
                                params={
                                    "collection": "settings"
@@ -87,5 +88,5 @@ if __name__ == '__main__':
             count = settings["proxyNumber"]
             log(checkAlive(aliveCount=count, newCount=count))
         except Exception as e:
-            time.sleep(1)
+            time.sleep(5)
             print(e)
