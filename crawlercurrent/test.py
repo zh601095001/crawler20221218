@@ -1,5 +1,5 @@
-import random
+from datetime import datetime, timedelta
+from time import mktime
+tp = (datetime.now() - timedelta(5)).date().timetuple()
 
-li = [1, 2, 3, 4, 5]
-random.shuffle(li)
-print(li)
+print(mktime(tp))

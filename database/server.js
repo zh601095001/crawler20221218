@@ -94,7 +94,7 @@ app.use(errorHandler);
 //         console.log(`Server running at ${host}:${PORT}\nDocs: ${host}:${PORT}/docs`)
 //     });
 // });
-app.timeout = 30 * 60 * 1000 //  超时时间 30min
+// app.timeout = 30 * 60 * 1000 //  超时时间 30min
 app.listen(PORT, () => {
     const host = 'http://localhost'
     console.log(`Server running at ${host}:${PORT}\nDocs: ${host}:${PORT}/docs`)

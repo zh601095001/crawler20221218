@@ -1,14 +1,11 @@
 import hashlib
 from datetime import datetime
 from os import getenv
-import time
 from selenium import webdriver
-from log import getLogger
+from logging import getLogger
 from utils import loadJs, parseJSON, getProxy, updateStatus
 
 SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
-
-logger = getLogger()
 
 
 def convertMd5(s):
@@ -34,6 +31,7 @@ def getCurrent():
     """
     获取比赛当前信息
     """
+    logger = getLogger()
     [
         options,
         # _id
@@ -48,19 +46,6 @@ def getCurrent():
         # updateStatus(_id)
     finally:
         driver.quit()
-
-
-def test1():
-    st = time.time()
-    count = 100
-    for i in range(count):
-        try:
-            getCurrent()
-        except Exception as e:
-            count -= 1
-    et = time.time()
-    print(count)
-    print((et - st) / count)
 
 
 if __name__ == '__main__':

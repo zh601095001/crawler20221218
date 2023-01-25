@@ -56,6 +56,9 @@ def getRecords(useProxy=True):
             "records": None,
             "limit": 100
         }).json()["data"]
+        if len(datas) == 0:
+            print("数据抓取完毕")
+            return
         shuffle(datas)
         data = datas[0]
         ID = data["ID"]

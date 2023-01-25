@@ -5,11 +5,11 @@ from os import getenv
 import requests as rq
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from log import getLogger
+# from log import getLogger
+import logging
 from utils import loadJs, parseJSON, getProxy, updateStatus
 
 SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
-logger = getLogger()
 
 
 def convertMd5(s):
@@ -36,6 +36,7 @@ def getLives():
     """
     获取比赛初始信息
     """
+    logger = logging.getLogger()
     [
         options,
         # _id
@@ -52,6 +53,7 @@ def getLives():
 
 def getInit():
     lives = getLives()
+    logger = logging.getLogger()
     for live in lives:
         print(live)
         proxys = getProxy()

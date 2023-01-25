@@ -99,7 +99,7 @@ setInterval(async () => {
         const finallyResults = targets
             // 阈值大于设定值
             .filter(target => {
-                if (!target.level) {
+                if (target.level === void 0) {
                     return false
                 }
                 if (target.extremum && target.type === "增量") {
