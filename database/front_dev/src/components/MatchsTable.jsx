@@ -50,32 +50,55 @@ const EditableCell = ({
     };
     let childNode = children;
     if (editable) {
-        childNode = editing ? (
-            <Form.Item
-                style={{
-                    margin: 0,
-                }}
-                name={dataIndex}
-                rules={[
-                    {
-                        required: true,
-                        message: `${title} is required.`,
-                    },
-                ]}
-            >
-                <InputNumber ref={inputRef} onPressEnter={save} onBlur={save}/>
-            </Form.Item>
-        ) : (
-            <div
-                className="editable-cell-value-wrap"
-                style={{
-                    paddingRight: 24,
-                }}
-                onClick={toggleEdit}
-            >
-                {children}
-            </div>
-        );
+        if (!editing) {
+            childNode = (
+                <div
+                    className="editable-cell-value-wrap"
+                    style={{
+                        paddingRight: 24,
+                    }}
+                    onClick={toggleEdit}
+                >
+                    {children}
+                </div>
+            )
+        } else {
+            childNode = (
+                <Form.Item
+                    style={{
+                        margin: 0,
+                    }}
+                    name={dataIndex}
+                    rules={[
+                        {
+                            required: true,
+                            message: `${title} is required.`,
+                        },
+                    ]}
+                >
+                    <InputNumber ref={inputRef} onPressEnter={save} onBlur={save}/>
+                </Form.Item>
+            )
+            if (dataIndex === "Validity") {
+                childNode = (
+                    <Form.Item
+                        style={{
+                            margin: 0,
+                        }}
+                        name={dataIndex}
+                        rules={[
+                            {
+                                required: true,
+                                message: `${title} is required.`,
+                            },
+                        ]}
+                    >
+                        <Input ref={inputRef} onPressEnter={save} onBlur={save}/>
+                    </Form.Item>
+                )
+            }
+        }
+
     }
     return <td {...restProps}>{childNode}</td>;
 };
@@ -84,8 +107,8 @@ function MatchsTable({type, dataSource, onDataChange}) {
     // const [dataSource, setDataSource] = useState(temp)
     const tableName = type === 1 ? "inc_table" : "des_table"
     const handleSave = (row) => {
-        console.log(row)
-        console.log(dataSource, "source")
+        // console.log(row)
+        // console.log(dataSource, "source")
         dataSource[tableName][row.level] = {...dataSource[tableName][row.level], ...row}
         onDataChange({...dataSource});
     };
@@ -110,8 +133,24 @@ function MatchsTable({type, dataSource, onDataChange}) {
             key: 'threshold',
             align: "center",
             editable: true,
-
         },
+        {
+            title: "是否有效",
+            key: 'isEffect',
+            align: "center",
+            editable: true,
+            dataIndex: "isEffect"
+            // render: (_, {isEffect}, index) => {
+            //     return isEffect ? 1 : 0
+            // }
+        },
+        {
+            title: "有效性",
+            key: "Validity",
+            align: "center",
+            dataIndex: "Validity",
+            editable: true
+        }
     ]
     const editableColumns = columns.map((col) => {
         if (!col.editable) {
@@ -128,6 +167,7 @@ function MatchsTable({type, dataSource, onDataChange}) {
             }),
         };
     });
+    // console.log(Object.entries(dataSource[tableName]).map(item => item[1]))
     return (
         <div>
             <Table

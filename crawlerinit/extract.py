@@ -42,6 +42,8 @@ def getLives():
         # _id
     ] = getOptions()
     driver = webdriver.Remote(options=options, command_executor=SELENIUM)
+    driver.set_page_load_timeout(20)
+    driver.set_script_timeout(20)
     try:
         driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
         return parseJSON(driver.execute_script(loadJs("./parser.js")))
@@ -61,7 +63,7 @@ def getInit():
         try:
             response = rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={live['ID']}", proxies=proxys["proxys"])
         except Exception as e:
-            logger.warn("代理失效")
+            logger.warning("代理失效")
             updateStatus(proxys["_id"])
             continue
         soup = BeautifulSoup(response.text, 'html.parser')

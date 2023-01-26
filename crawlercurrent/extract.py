@@ -37,6 +37,8 @@ def getCurrent():
         # _id
     ] = getOptions()
     driver = webdriver.Remote(options=options, command_executor=SELENIUM)
+    driver.set_page_load_timeout(20)
+    driver.set_script_timeout(20)
     try:
         driver.get(f"http://live.nowscore.com/basketball.htm?date={datetime.now().date()}")
         datas = parseJSON(driver.execute_script(loadJs("./parser.js")))

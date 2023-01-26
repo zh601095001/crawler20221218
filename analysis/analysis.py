@@ -223,9 +223,9 @@ def calc(df, thresholdRange=(6, 20), level=0, q=5, calc_type="增量"):
     ### END
     actual_validity = validity[max_index]
     actual_invalidity = 1 - validity[min_index]
-    isEffect = actual_validity >= actual_invalidity  # 判断统计的是有效还是无效比赛
+    isEffect = int(actual_validity >= actual_invalidity)  # 判断统计的是有效还是无效比赛
     actual_threshold = max_index + thresholdRange[0] if isEffect else min_index + thresholdRange[0]
-    return validity, validity_count, reached_count, current_range, (actual_validity if isEffect else actual_invalidity, actual_threshold, isEffect), max_index, len(selectLevel)
+    return validity, validity_count, reached_count, current_range, (actual_validity if isEffect else actual_invalidity, actual_threshold, isEffect), [max_index,min_index], len(selectLevel)
 
 
 def step02(df, q=5, thresholdRange=(6, 20)):
@@ -235,12 +235,12 @@ def step02(df, q=5, thresholdRange=(6, 20)):
     plotData1 = []
     plotData2 = []
     for i in range(q):
-        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), max_index, total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="增量")
-        li.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index], total])
+        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index,min_index], total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="增量")
+        li.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total])
         plotData1.append([validity, validity_count, reached])
     for i in range(q):
-        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), max_index, total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="减量")
-        li2.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index], total])
+        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index,min_index], total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="减量")
+        li2.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total])
         plotData2.append([validity, validity_count, reached])
     inc_table = DataFrame(li, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数"])
     des_table = DataFrame(li2, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数"])

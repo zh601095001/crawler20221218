@@ -14,3 +14,9 @@
 - docker-compose.yaml: 容器一键部署
 - start.sh: 删除并重启所有容器
 - update.sh: 更新容器至docker hub
+
+1. 无效比赛显示场数问题
+![img.png](img.png)![img_1.png](img_1.png)
+2. 新增前天联赛
+3. 平均最大增量 初始让分分段接近
+4. 代理
