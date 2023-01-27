@@ -73,7 +73,7 @@ def getProxy(status=True):
         shuffle(datas)
         data = datas[0]
         data["lastModify"] = int(time.time())
-        rq.put(f"{BASE_URL}/db/s",
+        rq.put(f"{BASE_URL}/db",
                params={
                    "collection": "proxy",
                },

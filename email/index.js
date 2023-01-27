@@ -15,9 +15,6 @@ setInterval(async () => {
         })).data.data
         const basicSettings = settings.filter(setting => setting._id === "basicSettings")[0]
         const matchSettings = settings.filter(setting => !(setting._id === "basicSettings"))
-        // console.log(basicSettings)
-        // console.log(settings)
-        // console.log(matchSettings, "match")
         // 判断启动时间是否大于延迟监听时间
         const responseTime = await axios.get("/db", {
             params: {
@@ -54,8 +51,6 @@ setInterval(async () => {
                 }
             })
             .map(records => {
-                // console.log(records.setting)
-                // let {_id, isSendEmail,["matchtime,["hometeam,["guestteam,["matchstate, validity,["homescore, total_score_2,["remaintime} = records
                 // 取第一个和最后一个
                 let start_score
                 if (records.setting.data.panName === "初盘") {
@@ -93,7 +88,6 @@ setInterval(async () => {
                     }
                 })
                 records["level"] = level
-                // records["validity"] = records["validity"] || 0.0
                 return records
             })
         const finallyResults = targets
@@ -130,7 +124,6 @@ setInterval(async () => {
             const THRESHOLD_WITH_TYPE = finallyResult.type === "增量" ? finallyResult.inc_threshold : finallyResult.des_threshold
             let initScoreTeamName = finallyResult["start_score"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
             let currentScoreTeamName = finallyResult["letGoal"] > 0 ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
-            // let team_name_line3 = finallyResult.type === "减量" ? finallyResult["hometeam"][0] : finallyResult["guestteam"][0]
             let team_name_line3
             if (finallyResult.type === "减量") {
                 if (!finallyResult.isEffect) {

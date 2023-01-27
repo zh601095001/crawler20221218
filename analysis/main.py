@@ -1,11 +1,15 @@
+import os
+import pathlib
 import time
-
+from pathlib import Path
 from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime
 from analysis import step01, analysis_matches_by_name
 import uvicorn
 import json
+from starlette.responses import FileResponse
+from utils import convert, zipDir
 
 app = FastAPI()
 
@@ -45,6 +49,23 @@ async def analysis_matches(dateRange: str, obj: Analysis):
     dateRange = convertDateRange(dateRange)
     print(dateRange, "post")
     return analysis_matches_by_name(obj.matchName, dateRange, obj.q, (obj.range.min, obj.range.max))
+
+
+@app.delete("/matches")
+async def delete_matches_cache():
+    pass
+
+
+@app.get("/download")
+async def analysis_matches(dateRange: str, obj: str):
+    obj = json.loads(obj)
+    dateRange = convertDateRange(dateRange)
+    packRoot = Path("zips")
+    data = analysis_matches_by_name(obj["matchName"], dateRange, obj["q"], (obj["range"]["min"], obj["range"]["max"]))
+    convert(data, packRoot)
+    zipDir(packRoot, "pack.zip")
+    os.system(f"rm zips -r")
+    return FileResponse('pack.zip', filename='pack.zip')
 
 
 if __name__ == "__main__":

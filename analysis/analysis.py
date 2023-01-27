@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas import read_json, DataFrame
 from copy import deepcopy
+from hashlib import md5
 
 """
 步骤一：数据准备
@@ -16,7 +17,7 @@ BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
 def mergeFiles(fp):
     with open(f"{fp}/sum.json", "w+") as fd:
         fd.write("[")
-        for i in Path(fp).iterdir():
+        for i in fp.iterdir():
             if not i.name.startswith("sum.json"):
                 text = i.read_text()
                 objs = text.strip("[").strip("]")
@@ -27,15 +28,18 @@ def mergeFiles(fp):
 
 
 def download(dateRange, limit=100):
-    filename = f"{dateRange[0]}-{dateRange[1]}"
-    if Path(filename).exists() and (Path(filename) / "sum.json").exists():
+    rootPath = Path("download")
+    rootPath.mkdir(exist_ok=True)
+    filename = rootPath / f"{dateRange[0]}-{dateRange[1]}"
+    if filename.exists() and (filename / "sum.json").exists():
         return f"{filename}/sum.json"
-    Path(filename).mkdir(exist_ok=True)
+    filename.mkdir(exist_ok=True)
     datas = []
     skip = 0
     while True:
         data = rq.post(f"{BASE_URL}/db/s?collection=matches", json={
             "timeStamp": {"$gte": dateRange[0], "$lte": dateRange[1]},
+            "records.records": {"$not": {"$size": 0}},
             "skip": skip,
             "limit": limit
         }).json()
@@ -127,6 +131,16 @@ def step01(dateRange):
                 filtered.append([time, score, pan])
         return filtered
 
+    def filterRecords_ji(records):
+        records = deepcopy(records["records"])
+        records.reverse()
+        filtered = []
+        for time, score, zhu, pan, ke, change, state in records:
+            if not time and "即" in state:
+                filtered.append(pan)
+        return filtered
+
+    df["records_ji"] = df["records"].map(filterRecords_ji)
     df["records"] = df["records"].map(filterRecords)
 
     return df.copy()
@@ -174,6 +188,7 @@ def calc(df, thresholdRange=(6, 20), level=0, q=5, calc_type="增量"):
     validity = []  # 有效性百分比列表
     validity_count = []  # 有效比赛计数
     reached_count = []  # 达到监控阈值比赛计数
+    all_download_records = []
     # 循环每一个监控阈值
     for i in range(thresholdRange[0], thresholdRange[1] + 1):
         # 分别计算增量和减量情况下的有效性
@@ -185,23 +200,40 @@ def calc(df, thresholdRange=(6, 20), level=0, q=5, calc_type="增量"):
         # 统计分析
         count_reach = 0  # 达到监控阈值的比赛数
         count_effect = 0  # 达到监控阈值且比赛有效的比赛数
-        for _, (initial, records, isEffect) in selectLevel[
-            [f"res_{panName}", "records", "isEffect"]].iterrows():  # 循环获得[初始让分 比赛历史记录 是否有效]
+        download_records = {
+            "valid_records": [],  # 达到监控阈值且有效的比赛
+            "invalid_records": []  # 达到监控阈值且无效的比赛
+        }
+        for _, (initial, records, isEffect, records_ji) in selectLevel[[f"res_{panName}", "records", "isEffect", "records_ji"]].iterrows():  # 循环获得[初始让分 比赛历史记录 是否有效]
             # 查找每一条比赛历史记录，根据监控类型以及是否达到监控阈值，进行统计
+            isReach = False  # 该场比赛是否达到阈值
+            isValid_records = False  # 该场比赛是否有效
+            filter_records = {"records": [], "records_ji": records_ji}
             for record in records:
+                filter_records["records"].append(record)
                 if calc_type == "增量" and (float(record[2]) - initial) >= i:  # 实时让分值 - 初始让分值 >= 增量监控阈值
                     count_reach += 1  # 达到监控阈值 count_reach +1
+                    isReach = True
                     if isEffect:
                         count_effect += 1  # 达到监控阈值而且比赛有效 count_effect +1
+                        isValid_records = True
                     break  # 触发条件立即停止监控判断
                 if calc_type == "减量" and (initial - float(record[2])) >= i:  # 初始让分值 - 实时让分值>=减量监控阈值
                     count_reach += 1  # 达到监控阈值 count_reach +1
+                    isReach = True
                     if isEffect:
                         count_effect += 1  # 达到监控阈值而且比赛有效 count_effect +1
+                        isValid_records = True
                     break  # 触发条件立即停止监控判断
+            if isReach:
+                if isValid_records:
+                    download_records["valid_records"].append(filter_records)
+                else:
+                    download_records["invalid_records"].append(filter_records)
         validity.append(count_effect / count_reach)
         validity_count.append(count_effect)
         reached_count.append(count_reach)
+        all_download_records.append(download_records)
     ### END
 
     ### START 有效性最大的索引和值
@@ -225,30 +257,37 @@ def calc(df, thresholdRange=(6, 20), level=0, q=5, calc_type="增量"):
     actual_invalidity = 1 - validity[min_index]
     isEffect = int(actual_validity >= actual_invalidity)  # 判断统计的是有效还是无效比赛
     actual_threshold = max_index + thresholdRange[0] if isEffect else min_index + thresholdRange[0]
-    return validity, validity_count, reached_count, current_range, (actual_validity if isEffect else actual_invalidity, actual_threshold, isEffect), [max_index,min_index], len(selectLevel)
+    return validity, validity_count, reached_count, current_range, (actual_validity if isEffect else actual_invalidity, actual_threshold, isEffect), [max_index, min_index], len(
+        selectLevel), [all_download_records, max_index if isEffect else min_index]
 
 
-def step02(df, q=5, thresholdRange=(6, 20)):
+def step02(df, q=5, thresholdRange=(6, 20), matchNames=None):
+    if matchNames is None:
+        matchNames = []
     panName = countPan(df)
     li = []  # 增量
     li2 = []  # 减量
     plotData1 = []
     plotData2 = []
     for i in range(q):
-        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index,min_index], total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="增量")
-        li.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total])
+        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index, min_index], total, download_records = calc(df, thresholdRange=thresholdRange,
+                                                                                                                                                                level=i, q=q,
+                                                                                                                                                                calc_type="增量")
+        li.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total, download_records])
         plotData1.append([validity, validity_count, reached])
     for i in range(q):
-        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index,min_index], total = calc(df, thresholdRange=thresholdRange, level=i, q=q, calc_type="减量")
-        li2.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total])
+        validity, validity_count, reached, current_range, (actual_validity, actual_threshold, isEffect), [max_index, min_index], total, download_records = calc(df, thresholdRange=thresholdRange,
+                                                                                                                                                                level=i, q=q,
+                                                                                                                                                                calc_type="减量")
+        li2.append([i, current_range, actual_threshold, f"{actual_validity:.2%}", isEffect, reached[max_index if isEffect else min_index], total, download_records])
         plotData2.append([validity, validity_count, reached])
-    inc_table = DataFrame(li, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数"])
-    des_table = DataFrame(li2, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数"])
+    inc_table = DataFrame(li, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数", "记录"])
+    des_table = DataFrame(li2, columns=["档位", "初始让分", "监控阈值", "有(无)效性", "是否有效", "达到监控阈值的比赛场数", "统计比赛场数", "记录"])
     total_count = len(df)
     reach_rate = (inc_table["达到监控阈值的比赛场数"].sum() + des_table["达到监控阈值的比赛场数"].sum()) / len(df)  # 达到监控阈值的总场次 / 统计总场次
 
-    inc_table_data = json.loads(DataFrame(li, columns=["level", "initialLetGoal", "threshold", "Validity", "isEffect", "totalReach", "totalMatch"]).T.to_json())
-    des_table_data = json.loads(DataFrame(li2, columns=["level", "initialLetGoal", "threshold", "Validity", "isEffect", "totalReach", "totalMatch"]).T.to_json())
+    inc_table_data = json.loads(DataFrame(li, columns=["level", "initialLetGoal", "threshold", "Validity", "isEffect", "totalReach", "totalMatch", "download_records"]).T.to_json())
+    des_table_data = json.loads(DataFrame(li2, columns=["level", "initialLetGoal", "threshold", "Validity", "isEffect", "totalReach", "totalMatch", "download_records"]).T.to_json())
     return {
         "panName": "初盘" if panName == "chupan" else "终盘",
         "totalCount": total_count,
@@ -257,19 +296,34 @@ def step02(df, q=5, thresholdRange=(6, 20)):
         "des_table": des_table_data,
         "plotData1": plotData1,
         "plotData2": plotData2,
-        "thresholdRange": thresholdRange
+        "thresholdRange": thresholdRange,
+        "matchNames": matchNames
     }
 
 
 def analysis_matches_by_name(matchNames, dateRange, q=5, thresholdRange=(6, 20)):
-    df = step01(dateRange)
-    sclasss = df.groupby("sclassName").groups
-    indexs = []
-    for matchName in matchNames:
-        indexs.append(sclasss[matchName])
-    stack_index = np.hstack(indexs)
-    df_input = df.loc[stack_index]
-    return step02(df_input, q=q, thresholdRange=thresholdRange)
+    inputMd5 = md5(json.dumps({
+        "matchNames": matchNames,
+        "dateRange": dateRange,
+        "q": q,
+        "thresholdRange": thresholdRange
+    }).encode("utf-8")).hexdigest()
+    resultPath = Path("result")
+    resultPath.mkdir(exist_ok=True)
+    resultFilePath = resultPath / inputMd5
+    if resultFilePath.exists():
+        return json.loads(resultFilePath.read_text())
+    else:
+        df = step01(dateRange)
+        sclasss = df.groupby("sclassName").groups
+        indexs = []
+        for matchName in matchNames:
+            indexs.append(sclasss[matchName])
+        stack_index = np.hstack(indexs)
+        df_input = df.loc[stack_index]
+        results = step02(df_input, q=q, thresholdRange=thresholdRange, matchNames=matchNames)
+        resultFilePath.write_text(json.dumps(results))
+        return results
 
 
 if __name__ == '__main__':

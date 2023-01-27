@@ -199,6 +199,14 @@ function Home() {
             q: form.getFieldValue("q"),
         })
     }
+    const handleDownload = () => {
+        console.log("xxx")
+        const dateRange = dateForm.getFieldValue("dateRange").map(item => item.valueOf()).join(",")
+        const value = form.getFieldsValue()
+        const obj = JSON.stringify(value)
+        console.log(`http://localhost:5000/download?dateRange=${dateRange}&obj=${obj}`)
+        window.open(`http://localhost:5000/download?dateRange=${dateRange}&obj=${obj}`)
+    }
     return (
         <div className={styles.main}>
             <h1>Step01</h1>
@@ -320,7 +328,7 @@ function Home() {
                     <Button type="primary" onClick={handleApply} disabled={!Object.getOwnPropertyNames(data).length}>
                         应用到配置
                     </Button>&nbsp;
-                    <Button type="primary" disabled={!Object.getOwnPropertyNames(data).length}>
+                    <Button type="primary" onClick={handleDownload} disabled={!Object.getOwnPropertyNames(data).length}>
                         下载到本地
                     </Button>
                 </Form.Item>

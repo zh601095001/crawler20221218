@@ -15,7 +15,6 @@ module.exports = function (app) {
             target: "http://analysis:5000",
             changeOrigin: true,
             pathRewrite: {'^/analysis': ''}
-
         })
     )
 

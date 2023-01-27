@@ -45,6 +45,13 @@ export const api = createApi({
                 body
             })
         }),
+        // downloadAnalysis: builder.mutation({
+        //     query: ({body, dateRange}) => ({
+        //         url: `/analysis/download?dateRange=${dateRange}`,
+        //         method: "POST",
+        //         body
+        //     })
+        // }),
         setEmail: builder.mutation({
             query: (body) => ({
                 url: `/settings?collection=settings`,
@@ -95,7 +102,7 @@ export const {
     useGetSettingsMutation,
     useGetMatchSettingsMutation,
     useSetMatchSettingsMutation,
-    useDeleteMatchSettingsMutation
+    useDeleteMatchSettingsMutation,
 } = api
 
 // @ts-ignore
