@@ -12,7 +12,7 @@ module.exports = function (app) {
     app.use(
         "/analysis",
         createProxyMiddleware({
-            target: "http://localhost:5000",
+            target: "http://analysis:5000",
             changeOrigin: true,
             pathRewrite: {'^/analysis': ''}
         })
