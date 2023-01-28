@@ -53,19 +53,25 @@ const addItems = async (req, res, next) => {
     }
 }
 const modifyItems = async (req, res, next) => {
-    const data = await req.collection.find({_id: req.body._id}).toArray()
-    if (!data.length) {
-        await req.collection.insertOne({_id: req.body._id})
-    }
     try {
         const updateOne = async ({_id, ...extras}) => {
             return await req.collection.updateMany({_id}, flatten(extras))
         }
         if (req.body instanceof Array) {
-            const info = req.body.map(item => updateOne(item))
+            const info = req.body.map(async item => {
+                const data = await req.collection.find({_id: item._id}).toArray()
+                if (!data.length) {
+                    return await req.collection.insertOne({...item})
+                }
+                return res.json(await updateOne(item))
+            })
             return res.json(await Promise.all(info))
         }
         if (Object.prototype.toString.call(req.body) === "[object Object]") {
+            const data = await req.collection.find({_id: req.body._id}).toArray()
+            if (!data.length) {
+                return await req.collection.insertOne({...req.body})
+            }
             return res.json(await updateOne(req.body))
         }
         return res.status(status.UNPROCESSABLE_ENTITY).json({
