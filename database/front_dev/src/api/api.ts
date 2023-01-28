@@ -53,11 +53,25 @@ export const api = createApi({
         //     })
         // }),
         setEmail: builder.mutation({
-            query: (body) => ({
-                url: `/settings?collection=settings`,
-                method: "POST",
-                body
-            })
+            query: (body) => {
+                body = JSON.parse(JSON.stringify(body))
+                Object.entries(body.data.inc_table).forEach(([k, v]) => {
+                    // @ts-ignore
+                    delete v.download_records
+                })
+                Object.entries(body.data.des_table).forEach(([k, v]) => {
+                    // @ts-ignore
+                    delete v.download_records
+                })
+                delete body.data.plotData1
+                delete body.data.plotData2
+                console.log(body)
+                return {
+                    url: `/settings?collection=settings`,
+                    method: "POST",
+                    body
+                }
+            }
         }),
         getSettings: builder.mutation({
             query: () => ({
@@ -74,11 +88,13 @@ export const api = createApi({
             }),
         }),
         setMatchSettings: builder.mutation({
-            query: (body) => ({
-                url: `/settings?collection=settings`,
-                method: "PUT",
-                body
-            })
+            query: (body) => {
+                return {
+                    url: `/settings?collection=settings`,
+                    method: "PUT",
+                    body
+                }
+            }
         }),
         deleteMatchSettings: builder.mutation({
             query: (body) => ({

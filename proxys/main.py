@@ -30,7 +30,7 @@ def updateProxy(num=1):
     urls = getIps(num)
     urls = list(map(lambda url: {"_id": md5(f"http://{url}".encode("utf-8")).hexdigest(), "http": f"{url}", "created": int(time.time()), "isAlive": True,
                                  "lastModify": int(time.time())}, urls))
-    return rq.post(f"{BASE_URL}/db", params={
+    return rq.put(f"{BASE_URL}/db", params={
         "collection": "proxy"
     }, json=urls).json()
 

@@ -1,6 +1,6 @@
-const {MongoClient} = require("mongodb")
+const data = require("./test.json")
 
-const mongoClient = await MongoClient.connect(process.env.DATABASE_URI)
-const database = mongoClient.db( "defaultDb")
-const collection = database.collection("defaultCollection")
-const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
+Object.entries(data.data.inc_table).forEach(([k, v]) => {
+    delete v.download_records
+})
+console.log(data.data.inc_table["0"].download_records)

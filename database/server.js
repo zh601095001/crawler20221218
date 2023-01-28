@@ -54,8 +54,8 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({extended: false}));
 
 // built-in middleware for json
-app.use(express.urlencoded({extended: true, limit: "20mb"}));
-app.use(express.json({extended: true, limit: "20mb"}));
+app.use(express.urlencoded({extended: true, limit: "2000mb"}));
+app.use(express.json({extended: true, limit: "2000mb"}));
 
 
 app.use(express.json());
