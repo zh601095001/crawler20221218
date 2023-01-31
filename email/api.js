@@ -19,5 +19,6 @@ const getCreateTime = async () => {
     return responseTime.data.data[0].createTime
 }
 module.exports = {
-    getSettings
+    getSettings,
+    getCreateTime
 }

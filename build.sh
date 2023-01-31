@@ -1,6 +1,6 @@
 # 数据分析
 cd ./analysis || exit
-docker build -t zhlcy2022/analysis
+docker build -t zhlcy2022/analysis .
 cd ..
 
 # 爬虫

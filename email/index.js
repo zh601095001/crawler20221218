@@ -3,7 +3,7 @@ const {axios} = require("./axios")
 const dayjs = require("dayjs")
 
 ;const {sendEmail} = require("./utils");
-const {getSettings,get} = require("./api");
+const {getSettings, getCreateTime} = require("./api");
 
 setInterval(async () => {
     try {
@@ -12,7 +12,7 @@ setInterval(async () => {
         const basicSettings = settings.filter(setting => setting._id === "basicSettings")[0]
         const matchSettings = settings.filter(setting => !(setting._id === "basicSettings"))
         // 判断启动时间是否大于延迟监听时间
-        const createTime = getCre
+        const createTime = await getCreateTime()
         if (!((dayjs().unix() - createTime) / 60 / 60 >= basicSettings.delayTimeSpan)) {
             return
         }
@@ -187,7 +187,6 @@ setInterval(async () => {
                 })
             }
 
-            console.log(finallyResults)
         }
         finallyResults.forEach(result => {
             axios.put("/db", {

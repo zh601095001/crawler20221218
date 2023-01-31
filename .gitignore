@@ -7,3 +7,5 @@ jupyter
 *.log
 *.json
 sum.json
+download
+result
