@@ -3,7 +3,7 @@ from datetime import datetime
 from os import getenv
 from selenium import webdriver
 from logging import getLogger
-from utils import loadJs, parseJSON, getProxy, updateStatus
+from utils import loadJs, parseJSON
 
 SELENIUM = getenv("SELENIUM") or "http://127.0.0.1:4444"
 
@@ -45,7 +45,6 @@ def getCurrent():
         return datas
     except Exception as e:
         logger.error(f"抓取主页失败:{e}")
-        # updateStatus(_id)
     finally:
         driver.quit()
 

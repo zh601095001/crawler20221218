@@ -4,33 +4,8 @@ import time
 from datetime import datetime
 from random import shuffle
 import requests as rq
-from os import getenv
-
 from bs4 import BeautifulSoup
-
-BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
-
-
-def checkStartTime():
-    startTime = int(time.time())
-    res = rq.get(f"{BASE_URL}/db?collection=time", params={
-        "_id": "lastRunTime"
-    })
-    if not res.json()["data"]:
-        rq.post(f"{BASE_URL}/db?collection=time", json={
-            "_id": "lastRunTime",
-            "createTime": startTime,
-            "createDate": datetime.now().__str__()
-        })
-
-
-def updateLastModifyTime():
-    lastModifyTime = int(time.time())
-    rq.put(f"{BASE_URL}/db?collection=time", json={
-        "_id": "lastRunTime",
-        "lastModifyTime": lastModifyTime,
-        "lastModifyDate": datetime.now().__str__()
-    })
+from api import getAliveProxys, getSettings, updateProxys
 
 
 def justifyArgs(arg):
@@ -60,62 +35,23 @@ def getDateTimeStampFromDatetime(dt: datetime):
     return int(time.mktime(dt.date().timetuple()))
 
 
-# def getProxys(status=True):
-#     return rq.post(f"{BASE_URL}/db/s",
-#                    params={
-#                        "collection": "proxy"
-#                    },
-#                    json={
-#                        "isAlive": status
-#                    }).json()
-
-
-def getProxy(status=True):
-    datas = rq.post(f"{BASE_URL}/db/s",
-                    params={
-                        "collection": "proxy",
-                    },
-                    json={
-                        "limit": 4000,
-                        "isAlive": status,
-                        "lastModify": {"$lt": int(time.time()) - 1}
-                    }).json()["data"]
-    settings = rq.post(f"{BASE_URL}/db/s",
-                       params={
-                           "collection": "settings"
-                       },
-                       json={
-                           "_id": "basicSettings"
-                       }).json()["data"][0]
+def getProxy():
+    proxys = getAliveProxys()
+    settings = getSettings()
     username = settings["proxyUsername"]
     password = settings["proxyPassword"]
-    if datas:
-        shuffle(datas)
-        data = datas[0]
-        data["lastModify"] = int(time.time())
-        rq.put(f"{BASE_URL}/db/s",
-               params={
-                   "collection": "proxy",
-               },
-               json=data)
-        url = data["http"]
-        data["proxys"] = {
-            "http": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url},
-            "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url}
+    if proxys:
+        shuffle(proxys)
+        proxy = proxys[0]
+        proxy["lastModify"] = int(time.time())
+        updateProxys(proxy)
+        proxy["proxys"] = {
+            "http": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": proxy["http"]},
+            "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": proxy["http"]}
         }
-        return data
+        return proxy
     else:
         return None
-
-
-def updateStatus(_id, status=False):
-    return rq.put(f"{BASE_URL}/db", params={
-        "collection": "proxy"
-    }, json={
-        "_id": _id,
-        "isAlive": status,
-        "lastModify": int(time.time())
-    }).json()
 
 
 def parser(_id, proxies):
@@ -139,8 +75,3 @@ def parser(_id, proxies):
         "headers": headers,
         "records": records
     }
-
-
-if __name__ == '__main__':
-    js = loadJs("./parser.js")
-    print(js)

@@ -79,10 +79,9 @@ def getProxy(status=True):
                    "collection": "proxy",
                },
                json=data)
-        url = data["http"]
         data["proxys"] = {
-            "http": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url},
-            "https": "http://%(user)s:%(pwd)s@%(proxy)s/" % {"user": username, "pwd": password, "proxy": url}
+            "http": f"http://{username}:{password}@{data['http']}/",
+            "https": f"http://{username}:{password}@{data['http']}/"
         }
         return data
     else:

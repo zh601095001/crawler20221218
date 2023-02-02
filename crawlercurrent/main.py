@@ -1,12 +1,8 @@
 import yaml
-
 from extract import getCurrent
 from utils import updateLastModifyTime
-from os import getenv
-import requests as rq
 from logging import config as loggingConfig, getLogger
-
-BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
+from api import get_match_by_id, set_match_current
 
 if __name__ == '__main__':
     with open("logging_config.yml", "r", encoding="utf8") as f:
@@ -22,13 +18,10 @@ if __name__ == '__main__':
                 updateLastModifyTime()
             for currentGame in currentGames:
                 currentGame["_id"] = currentGame["ID"]
-                res = rq.get(f"{BASE_URL}/db", params={
-                    "_id": currentGame["ID"]
-                })
-                if not res.json()["data"]:
+                if not get_match_by_id(currentGame["ID"]):
                     logger.info(f"比赛初始信息未找到,跳过...ID:{currentGame['ID']}")
                 else:
                     logger.info(f"更新比赛：{currentGame['ID']}")
-                    rq.put(f"{BASE_URL}/db", json=currentGame)
+                    set_match_current(currentGame)
         except Exception as e:
             logger.error(f"全局错误:{e}")

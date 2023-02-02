@@ -1,21 +1,13 @@
 import time
-from os import getenv
 from hashlib import md5
-import requests as rq
-import random
 import kdl
-
-BASE_URL = getenv("BASE_URL") or "http://localhost:8000"
+from api import getSettings, updateProxys, getAliveProxys
 
 
 def getIps(num):
-    settings = rq.post(f"{BASE_URL}/db/s",
-                       params={
-                           "collection": "settings"
-                       },
-                       json={
-                           "_id": "basicSettings"
-                       }).json()["data"][0]
+    settings = getSettings()
+    if not settings:
+        raise Exception("获取设置失败，请检查配置")
     secretId = settings["secretId"]
     secretKey = settings["secretKey"]
     auth = kdl.Auth(secretId, secretKey)
@@ -23,71 +15,35 @@ def getIps(num):
     ips = client.get_dps(num, format='json')
     valids = client.check_dps_valid(ips)
     valids = list(filter(lambda i: i, [k if v else None for k, v in valids.items()]))
+    print(f"新获取到的代理ip:{valids}")
     return valids
 
 
-def updateProxy(num=1):
-    urls = getIps(num)
-    urls = list(map(lambda url: {"_id": md5(f"http://{url}".encode("utf-8")).hexdigest(), "http": f"{url}", "created": int(time.time()), "isAlive": True,
-                                 "lastModify": int(time.time())}, urls))
-    print(urls)
-    return rq.put(f"{BASE_URL}/db", params={
-        "collection": "proxy"
-    }, json=urls).json()
-
-
-def get(status=True):
-    return rq.post(f"{BASE_URL}/db/s",
-                   params={
-                       "collection": "proxy"
-                   },
-                   json={
-                       "isAlive": status
-                   }).json()
-
-
-def updateStatus(_id, status=False):
-    return rq.put(f"{BASE_URL}/db", params={
-        "collection": "proxy"
-    }, json={
-        "_id": _id,
-        "isAlive": status
-    }).json()
-
-
-def checkAlive(aliveCount=50, newCount=50):
+def checkAlive(count=10):
     """
     当不足aliveCount时，添加newCount个代理
     """
-    if len(get()["data"]) < aliveCount:
-        return updateProxy(newCount)
-
-
-def log(obj: [list, dict]):
-    if obj:
-        return rq.post(f"{BASE_URL}/db", params={
-            "collection": "logs"
-        }, json={
-            "_id": int(time.time()),
-            "data": obj
-        }).json()
-    else:
-        return False
+    if len(getAliveProxys()) < count:
+        print(f"当前代理ip数：{getAliveProxys()}，已经不足，补充中...")
+        urls = getIps(count)
+        urls = list(map(lambda url: {"_id": md5(f"http://{url}".encode("utf-8")).hexdigest(), "http": f"{url}", "created": int(time.time()), "isAlive": True,
+                                     "lastModify": int(time.time())}, urls))
+        return updateProxys(urls)
 
 
 if __name__ == '__main__':
+    # with open("logging_config.yml", "r", encoding="utf8") as f:
+    #     logging_config = yaml.safe_load(f)
+    # loggingConfig.dictConfig(logging_config)
+    # logger = getLogger()
     while True:
         try:
-            time.sleep(5)
-            settings = rq.post(f"{BASE_URL}/db/s",
-                               params={
-                                   "collection": "settings"
-                               },
-                               json={
-                                   "_id": "basicSettings"
-                               }).json()["data"][0]
+            time.sleep(0.001)
+            settings = getSettings()
             count = settings["proxyNumber"]
-            log(checkAlive(aliveCount=count, newCount=count))
+            print(f"当前代理设置数：{count}")
+            logs = checkAlive(count=count)
+            print(logs)
         except Exception as e:
-            time.sleep(5)
+            time.sleep(1)
             print(e)

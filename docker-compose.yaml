@@ -17,18 +17,18 @@ services:
         limits:
           #cpus: '0.50'
           memory: 8gb
-#    oom_kill_disable: true
+  #    oom_kill_disable: true
 
   proxys:
     image: zhlcy2022/proxys
     depends_on:
       - mongo
-      - database-proxy
+      - database
     volumes:
       - ./proxys:/app
     command: sh -c "python main.py"
     environment:
-      BASE_URL: http://database-proxy:8000
+      BASE_URL: http://database:8000
 
   #  爬虫服务
   crawlerinit:
@@ -36,47 +36,65 @@ services:
     #    build: ./crawler
     depends_on:
       - mongo
-      - database-init
+      - database
     volumes:
       - ./crawlerinit:/app
     command: sh -c "python3 main.py"
     environment:
-      BASE_URL: http://database-init:8000
+      BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
   crawlercurrent:
     image: zhlcy2022/crawlercurrent
     #    build: ./crawler
     depends_on:
       - mongo
-      - database-current
+      - database
     volumes:
       - ./crawlercurrent:/app
     command: sh -c "python3 main.py"
     environment:
-      BASE_URL: http://database-current:8000
+      BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
   crawlerhistory:
     image: zhlcy2022/crawlerhistory
     #    build: ./crawler
     depends_on:
       - mongo
-      - database-history
+      - database
     volumes:
       - ./crawlerhistory:/app
     command: sh -c "python3 main.py"
     environment:
-      BASE_URL: http://database-history:8000
+      BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
+  crawlerrecords:
+    image: zhlcy2022/crawlerrecords
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./crawlerrecords:/app
+    command: sh -c "python3 main.py"
+    environment:
+      BASE_URL: http://database:8000
+      SELENIUM: http://selenium-hub:4444
+    ports:
+      - "6000:6000"
+
+
+
+
+
+
 
   #  数据库服务
-  database-current:
+  database:
     image: zhlcy2022/database
     #    build: ./database
     depends_on:
       - mongo
     volumes:
       - ./database:/app
-
     command: sh -c "yarn install && yarn start"
     ports:
       - "8000:8000"
@@ -91,79 +109,51 @@ services:
       - mongo
     volumes:
       - ./database:/app
-
     command: sh -c "yarn install && yarn start"
     environment:
       DATABASE_URI: mongodb://root:example@mongo:27017
       ANALYSIS_URL: http://analysis:5000
       PORT: 8000
-  database-init:
-    image: zhlcy2022/database
-    #    build: ./database
-    depends_on:
-      - mongo
-    volumes:
-      - ./database:/app
 
-    command: sh -c "yarn install && yarn start"
-    environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017
-      ANALYSIS_URL: http://analysis:5000
-      PORT: 8000
-  database-proxy:
-    image: zhlcy2022/database
-    #    build: ./database
-    depends_on:
-      - mongo
-    volumes:
-      - ./database:/app
 
-    command: sh -c "yarn install && yarn start"
-    environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017
-      ANALYSIS_URL: http://analysis:5000
-      PORT: 8000
-  database-history:
-    image: zhlcy2022/database
-    #    build: ./database
-    depends_on:
-      - mongo
-    volumes:
-      - ./database:/app
-
-    command: sh -c "yarn install && yarn start"
-    environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017
-      ANALYSIS_URL: http://analysis:5000
-      PORT: 8000
-  database-email:
-    image: zhlcy2022/database
-    #    build: ./database
-    depends_on:
-      - mongo
-    volumes:
-      - ./database:/app
-
-    command: sh -c "yarn install && yarn start"
-    environment:
-      DATABASE_URI: mongodb://root:example@mongo:27017
-      ANALYSIS_URL: http://analysis:5000
-      PORT: 8000
-    #  邮件服务
-  email:
-    image: zhlcy2022/email
+  #  邮件服务
+  emailCreator:
+    image: zhlcy2022/emailcreator
     #    build: ./email
     depends_on:
       - mongo
-      - database-email
+      - database
       - crawlerinit
       - crawlercurrent
     volumes:
-      - ./email:/app
+      - ./emailcreator:/app
     command: sh -c "yarn install && yarn start"
     environment:
-      BASE_URL: http://database-email:8000
-      # email
+      BASE_URL: http://database:8000
+      CRAWLER_RECORDS: http://crawlerrecords:6000
+  emailSender:
+    image: zhlcy2022/emailsender
+    #    build: ./email
+    depends_on:
+      - mongo
+      - database
+      - crawlerinit
+      - crawlercurrent
+    volumes:
+      - ./emailsender:/app
+    command: sh -c "yarn install && yarn start"
+    environment:
+      BASE_URL: http://database:8000
+      CRAWLER_RECORDS: http://crawlerrecords:6000
+
+
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
   chrome:
     image: zhlcy2022/chrome
     build: ./chrome
@@ -194,13 +184,10 @@ services:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-  selenium-hub:
-    image: selenium/hub:latest
-    container_name: selenium-hub
-    ports:
-      - "4442:4442"
-      - "4443:4443"
-      - "4444:4444"
+
+
+
+
 
   # mongodb
   mongo:

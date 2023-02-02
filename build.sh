@@ -16,14 +16,22 @@ cd ./crawlerinit || exit
 docker build -t zhlcy2022/crawlerinit .
 cd ..
 
+cd ./crawlerrecords || exit
+docker build -t zhlcy2022/crawlerrecords .
+cd ..
+
 # 前后端
 cd ./database || exit
 docker build -t zhlcy2022/database .
 cd ..
 
 # 邮件
-cd ./email || exit
-docker build -t zhlcy2022/email .
+cd ./emailcreator || exit
+docker build -t zhlcy2022/emailcreator .
+cd ..
+
+cd ./emailsender || exit
+docker build -t zhlcy2022/emailsender .
 cd ..
 
 # 代理
