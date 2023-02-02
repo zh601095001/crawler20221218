@@ -9,7 +9,7 @@ const getSettings = async () => {
     })).data.data.filter(setting => setting._id === "basicSettings")[0]
 }
 const getEmails = async () => {
-    return (await axios.post(baseURL + "/db/s", {"status": 1}, {
+    return (await axios.post(baseURL + "/db/s", {"status": 0}, {
         params: {
             collection: "email",
         }
