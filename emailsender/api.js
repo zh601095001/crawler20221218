@@ -8,8 +8,8 @@ const getSettings = async () => {
         timeout: 1000 * 60 * 5
     })).data.data.filter(setting => setting._id === "basicSettings")[0]
 }
-const getEmails = async () => {
-    return (await axios.post(baseURL + "/db/s", {"status": 0}, {
+const getEmails = async (status) => {
+    return (await axios.post(baseURL + "/db/s", {"status": status}, {
         params: {
             collection: "email",
         }
