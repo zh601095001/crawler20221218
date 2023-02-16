@@ -1,8 +1,3 @@
-response = None
+obj = {"letGoal":12}
 
-try:
-    response = 100
-except Exception as e:
-    print(e)
-
-print(response)
+print("letGoal" in obj.keys())

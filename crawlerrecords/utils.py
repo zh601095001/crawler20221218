@@ -4,6 +4,8 @@ import time
 from datetime import datetime
 from random import shuffle
 from bs4 import BeautifulSoup
+from fastapi import HTTPException
+
 from api import getLastRuntime, setLastRuntime, updateLastModify, getAliveProxy, getSettings, updateProxy, deAliveProxy
 import requests as rq
 
@@ -74,8 +76,8 @@ def updateStatus(_id):
     return deAliveProxy(_id)
 
 
-def parser(_id, proxies):
-    res = rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={_id}", timeout=15, proxies=proxies)
+def parser(_id):
+    res = rq.get(f"http://live.nowscore.com/nba/odds/2in1Odds.aspx?cid=3&id={_id}", timeout=15)
     if res.status_code > 300:
         raise Exception(res.text)
     soup = BeautifulSoup(res.text, 'html.parser')
@@ -85,6 +87,7 @@ def parser(_id, proxies):
     changeRecord = tables[0]
     title = changeRecord.find("td", class_="ostitle").text
     headers = list(map(lambda td: td.text, changeRecord.find("tr", class_="gta").find_all("td")))
+    print(headers)
 
     def getRecords(record):
         return list(map(lambda td: td.text, record.find_all("td")))
@@ -111,8 +114,9 @@ def filterRecords(records):
 
 
 def formatter(records, sep_time=12, isEffect=1):
-    _records, records_ji = filterRecords(records)
+    _records, records_ji = filterRecords(records)  # 清除节开始前、封、加时、中场
     # 实时让分 真实分差 时间 有效性
+    # 按照节进行划分
     parts = [[_records[0]]]
     for i in _records[1:]:
         last_elm = parts[-1][-1]  # 选择该节中最后一个元素
@@ -124,7 +128,7 @@ def formatter(records, sep_time=12, isEffect=1):
     for i, part in enumerate(parts):
         start = i * 12 * 60
         for t, score, letScore in part:
-            if len(t.strip().split()) < 2:
+            if len(t.strip().split()) < 2:  # 节上没有时间的情况
                 continue
             t = list(map(lambda x: int(x), t.strip().split()[1].split(":")))
             seconds = t[0] * 60 + t[1]
@@ -132,7 +136,10 @@ def formatter(records, sep_time=12, isEffect=1):
             letScore = float(letScore)
             result_arr.append([letScore, eval(score), currentTime, isEffect])
     length = len(result_arr)
+    if length < 5:
+        raise HTTPException(status_code=404, detail="未能获取到比赛精确时间，该场比赛无精确时间")
     length_ji = len(records_ji)
+    print(f"length:{length}, length_ji:{length_ji}")
     if length_ji > length:
         result_arr.extend([[None, None, None] for i in range(length_ji - length)])
     else:
@@ -144,6 +151,7 @@ def formatter(records, sep_time=12, isEffect=1):
         temp = map(lambda x: str(x), temp)
         result_arr2.append(temp)
     csv = [",".join(["即", "滚盘", "真实分差", "时间", "结果"])]
+    print(csv)
     result_arr2 = list(map(lambda x: ",".join(x), result_arr2))
     csv.extend(result_arr2)
     return "\n".join(csv)

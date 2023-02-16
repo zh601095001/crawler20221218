@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # logger = getLogger()
     while True:
         try:
-            time.sleep(0.001)
+            time.sleep(1)
             settings = getSettings()
             count = settings["proxyNumber"]
             print(f"当前代理设置数：{count}")

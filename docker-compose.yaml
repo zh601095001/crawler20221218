@@ -2,6 +2,7 @@ version: "3.7"
 services:
   analysis:
     image: zhlcy2022/analysis
+#    build: ./analysis
     depends_on:
       - mongo
       - database-analysis
@@ -19,20 +20,22 @@ services:
           memory: 8gb
   #    oom_kill_disable: true
 
-  proxys:
-    image: zhlcy2022/proxys
-    depends_on:
-      - mongo
-      - database
-    volumes:
-      - ./proxys:/app
-    command: sh -c "python main.py"
-    environment:
-      BASE_URL: http://database:8000
+#  proxys:
+#    image: zhlcy2022/proxys
+##    build: ./proxys
+#    depends_on:
+#      - mongo
+#      - database
+#    volumes:
+#      - ./proxys:/app
+#    command: sh -c "python main.py"
+#    environment:
+#      BASE_URL: http://database:8000
 
   #  爬虫服务
   crawlerinit:
     image: zhlcy2022/crawlerinit
+#    build: ./crawlerinit
     #    build: ./crawler
     depends_on:
       - mongo
@@ -45,6 +48,7 @@ services:
       SELENIUM: http://selenium-hub:4444
   crawlercurrent:
     image: zhlcy2022/crawlercurrent
+#    build: ./crawlercurrent
     #    build: ./crawler
     depends_on:
       - mongo
@@ -57,6 +61,7 @@ services:
       SELENIUM: http://selenium-hub:4444
   crawlerhistory:
     image: zhlcy2022/crawlerhistory
+#    build: ./crawlerhistory
     #    build: ./crawler
     depends_on:
       - mongo
@@ -67,8 +72,22 @@ services:
     environment:
       BASE_URL: http://database:8000
       SELENIUM: http://selenium-hub:4444
+  crawlerhistory2:
+    image: zhlcy2022/crawlerhistory2
+    #    build: ./crawlerhistory
+    #    build: ./crawler
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./crawlerhistory2:/app
+    command: sh -c "python3 main.py"
+    environment:
+      BASE_URL: http://database:8000
+      SELENIUM: http://selenium-hub:4444
   crawlerrecords:
     image: zhlcy2022/crawlerrecords
+#    build: ./crawlerrecords
     depends_on:
       - mongo
       - database
@@ -80,6 +99,17 @@ services:
       SELENIUM: http://selenium-hub:4444
     ports:
       - "6000:6000"
+  emailvalid:
+    image: zhlcy2022/emailvalid
+#    build: ./emailvalid
+    depends_on:
+      - mongo
+      - database
+    volumes:
+      - ./emailvalid:/app
+    command: sh -c "python3 export_r.py"
+    environment:
+      BASE_URL: http://database:8000
 
 
 
@@ -90,6 +120,7 @@ services:
   #  数据库服务
   database:
     image: zhlcy2022/database
+#    build: ./database
     #    build: ./database
     depends_on:
       - mongo
@@ -104,7 +135,7 @@ services:
       PORT: 8000
   database-analysis:
     image: zhlcy2022/database
-    #    build: ./database
+#    build: ./database
     depends_on:
       - mongo
     volumes:
@@ -117,8 +148,9 @@ services:
 
 
   #  邮件服务
-  emailCreator:
+  emailcreator:
     image: zhlcy2022/emailcreator
+#    build: ./emailcreator
     #    build: ./email
     depends_on:
       - mongo
@@ -131,8 +163,9 @@ services:
     environment:
       BASE_URL: http://database:8000
       CRAWLER_RECORDS: http://crawlerrecords:6000
-  emailSender:
+  emailsender:
     image: zhlcy2022/emailsender
+#    build: ./emailsender
     #    build: ./email
     depends_on:
       - mongo
@@ -155,7 +188,7 @@ services:
       - "4443:4443"
       - "4444:4444"
   chrome:
-    image: zhlcy2022/chrome
+#    image: zhlcy2022/chrome
     build: ./chrome
     shm_size: 2gb
     depends_on:
@@ -165,7 +198,7 @@ services:
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
   chrome2:
-    image: zhlcy2022/chrome
+#    image: zhlcy2022/chrome
     build: ./chrome
     shm_size: 2gb
     depends_on:
@@ -175,7 +208,7 @@ services:
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
   chrome3:
-    image: zhlcy2022/chrome
+#    image: zhlcy2022/chrome
     build: ./chrome
     shm_size: 2gb
     depends_on:

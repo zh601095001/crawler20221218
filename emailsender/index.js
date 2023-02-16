@@ -5,7 +5,7 @@ const {getEmails, getSettings, changeEmailState} = require("./api");
 
 const loop = async () => {
     try {
-        const emails = await getEmails(0)
+        const emails = await getEmails(1)
         const settings = await getSettings()
         let isError = false
         for (const receiveEmail of settings.receiveEmails) {

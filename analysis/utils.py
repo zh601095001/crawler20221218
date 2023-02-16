@@ -31,6 +31,8 @@ def convertDictToFiles(data, rootPath):
                     letScore = float(letScore)
                     result_arr.append([letScore, eval(score), currentTime, isEffect])
             length = len(result_arr)
+            if length < 5:
+                return
             length_ji = len(records_ji)
             if length_ji > length:
                 result_arr.extend([[None, None, None] for i in range(length_ji - length)])
@@ -41,6 +43,7 @@ def convertDictToFiles(data, rootPath):
                 temp = [_]
                 temp.extend(res)
                 result_arr2.append(temp)
+            print(result_arr2)
             df = DataFrame(result_arr2, columns=["即", "滚盘", "真实分差", "时间", "结果"])
             df.to_csv(f"{output_fileName}", index=False)
 

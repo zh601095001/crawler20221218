@@ -1,3 +1,4 @@
+import time
 from os import getenv
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -24,23 +25,24 @@ def getOptions():
 
 def getRecords(_id):
     proxy = None
-    try:
-        proxy = getProxy()
-    except Exception as e:
-        logger.error(e)
-    if not proxy:
-        logger.info(f"未能从代理列表获取代理，{proxy}")
+    # try:
+    #     proxy = getProxy()
+    # except Exception as e:
+    #     logger.error(e)
+    # if not proxy:
+    #     logger.info(f"未能从代理列表获取代理，{proxy}")
     try:
         logger.info(f"_id:{_id}")
-        records = parser(_id, proxy["proxys"])
+        records = parser(_id,)
+                         # proxy["proxys"])
         if records:
             return records
         else:
             return None
     except Exception as e:
         logger.error(f"获取比赛记录失败:{e}")
-        if proxy:
-            updateStatus(proxy["_id"])
+        # if proxy:
+        #     updateStatus(proxy["_id"])
         return None
 
 
@@ -49,7 +51,7 @@ app = FastAPI()
 
 @app.get("/records")  # 获取所有联赛名
 async def get_records_by_id(_id: str, sep_time: int = 12, isEffect: int = 1):
-    max_retry = 10
+    max_retry = 20
     count = 0
     while True:
         count += 1
@@ -59,6 +61,8 @@ async def get_records_by_id(_id: str, sep_time: int = 12, isEffect: int = 1):
         records = getRecords(_id)
         if records:
             return formatter(records["records"], sep_time=sep_time, isEffect=isEffect)
+        else:
+            time.sleep(30)
 
 
 if __name__ == '__main__':

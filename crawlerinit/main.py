@@ -11,7 +11,6 @@ if __name__ == '__main__':
     loggingConfig.dictConfig(logging_config)
     logger = getLogger()
     while True:
-        time.sleep(5)
         logger.info("执行中...")
         try:
             checkStartTime()
@@ -23,5 +22,7 @@ if __name__ == '__main__':
                     initGame["createTime"] = int(time.time())
                     initGame["isSendEmail"] = False
                     add_new_match(initGame)
+            time.sleep(60)
         except Exception as e:
-            logger.error(f"初始让分全局错误:{e},请检查代理是否配置成功")
+            logger.error(f"初始让分全局错误:{e},请检查配置")
+            time.sleep(60)

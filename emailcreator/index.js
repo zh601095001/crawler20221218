@@ -170,7 +170,7 @@ const loop = async () => {
                 isEffect: finallyResult.isEffect
             })
             if (status > 300) {
-                continue
+                await changeState(finallyResult._id) // 由于无法获取到比赛记录，该场比赛监控跳过
             }
             const emailInfo = {
                 html,
