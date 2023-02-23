@@ -19,11 +19,11 @@ const getItems = async (req, res, next) => {
 
 const searchItem = async (req, res, next) => {
     try {
-        let {limit, skip, ...extraQuery} = req.body
+        let {limit, skip, $projection, ...extraQuery} = req.body
         console.log(extraQuery)
         limit = limit ? Number(limit) : 1000
         skip = skip ? Number(skip) : 0
-        const cur = req.collection.find(extraQuery).skip(skip).limit(limit)
+        const cur = req.collection.find(extraQuery, {projection: $projection}).skip(skip).limit(limit)
         const data = await cur.toArray()
         const count = await req.collection.countDocuments(extraQuery)
         await req.mongoClient.close()

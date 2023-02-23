@@ -32,7 +32,7 @@ cd ..
 # 前后端
 cd ./database || exit
 docker build -t zhlcy2022/database .
-cd ..
+cd cd ..
 
 
 # 邮件

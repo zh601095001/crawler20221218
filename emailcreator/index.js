@@ -9,10 +9,10 @@ const loop = async () => {
         const basicSettings = settings.filter(setting => setting._id === "basicSettings")[0]
         const matchSettings = await getMatchSettings()
         // 判断启动时间是否大于延迟监听时间
-        const createTime = await getCreateTime()
-        if (!((dayjs().unix() - createTime) / 60 / 60 >= basicSettings.delayTimeSpan)) {
-            return
-        }
+        // const createTime = await getCreateTime()
+        // if (!((dayjs().unix() - createTime) / 60 / 60 >= basicSettings.delayTimeSpan)) {
+        //     return
+        // }
         // 获取监控时间范围之内的比赛记录并计算让分差
         const matches = await getMatches(basicSettings.monitorTimeSpan)
         const targets = matches

@@ -1,6 +1,8 @@
 import json
 import os
+import time
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 
@@ -103,3 +105,10 @@ def zipDir(dirpath, outFullName):
         for filename in filenames:
             zip.write(os.path.join(path, filename), os.path.join(fpath, filename))
     zip.close()
+
+
+def getDateTimeStampFromDatetime(dt: datetime):
+    """
+    获取当前日期的时间撮，不包括时分秒
+    """
+    return int(time.mktime(dt.date().timetuple()))
